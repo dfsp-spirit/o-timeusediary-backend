@@ -20,7 +20,7 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 from . settings import settings
-from .models import TimeuseEntry, TimeuseEntryCreate, TimeuseEntryRead, HealthEntryUpdate
+from .models import TimeuseEntry, TimeuseEntryCreate, TimeuseEntryRead, StudyEntryName, Study, StudyRead, StudyCreate, StudyEntryNameCreate, StudyEntryNameRead, TimelineActivity
 from .database import get_session, create_db_and_tables
 
 
@@ -28,7 +28,7 @@ from .database import get_session, create_db_and_tables
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    logger.info(f"Backend starting with allowed origins: {settings.allowed_origins}")
+    logger.info(f"TUD Backend starting with allowed origins: {settings.allowed_origins}")
     if settings.debug:
         print(f"Debug mode enabled.")
 
@@ -37,7 +37,7 @@ async def lifespan(app: FastAPI):
 
     yield
     # Shutdown
-    logger.info("Backend shutting down")
+    logger.info("TUD Backend shutting down")
 
 
 app = FastAPI(title="Timeusediary (TUD) API", version="0.1.0", lifespan=lifespan)
@@ -169,99 +169,6 @@ async def validation_exception_handler(request: Request, exc: ValidationError):
     )
 
 
-@app.post("/entries/", response_model=TimeuseEntryRead)
-def submit_entry(entry: TimeuseEntryCreate, session: Session = Depends(get_session)):
-
-    if not entry.uid:
-        raise HTTPException(status_code=400, detail="User ID (uid) is required")
-
-    # Use the date from the submitted entry, not today!
-    target_date = entry.date
-
-    # Calculate day_of_week from the date (Monday=0, Sunday=6)
-    date_obj = datetime.strptime(target_date, "%Y-%m-%d").date()
-    computed_day_of_week = date_obj.weekday()  # Store in variable
-    entry.day_of_week = computed_day_of_week
-
-    existing_entry = session.exec(
-        select(TimeuseEntry).where(TimeuseEntry.date == target_date,
-               TimeuseEntry.uid == entry.uid)
-    ).first()
-
-    if existing_entry:
-        # Update existing entry - EXCLUDE DATE from updates
-        update_data = entry.dict(exclude_unset=True, exclude={'date', 'uid'})
-        for field, value in update_data.items():
-            setattr(existing_entry, field, value)
-
-        existing_entry.day_of_week = computed_day_of_week
-
-        session.add(existing_entry)
-        session.commit()
-        session.refresh(existing_entry)
-
-        return Response(
-             content=existing_entry.json(),
-             status_code=200,
-             headers={"X-Operation": "updated"}
-        )
-    else:
-        # Create new entry
-        db_entry = TimeuseEntry.from_orm(entry)
-        session.add(db_entry)
-        session.commit()
-        session.refresh(db_entry)
-
-        return Response(
-             content=db_entry.json(),
-             status_code=201,
-             headers={"X-Operation": "created"}
-        )
-
-
-@app.get("/entries/", response_model=List[TimeuseEntryRead])
-def read_all_entries(
-    skip: int = 0,
-    limit: int = 100,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    uid: str = Query(..., description="User ID required"),
-    session: Session = Depends(get_session)
-):
-    """Get all health entries with optional filtering"""
-
-    query = select(TimeuseEntry).where(TimeuseEntry.uid == uid)  # Filter by UID
-
-    if start_date:
-        query = query.where(TimeuseEntry.date >= start_date)
-    if end_date:
-        query = query.where(TimeuseEntry.date <= end_date)
-
-    query = query.order_by(TimeuseEntry.date.desc()).offset(skip).limit(limit)
-
-    entries = session.exec(query).all()
-    return entries
-
-@app.get("/entries/today", response_model=Optional[TimeuseEntryRead])
-def read_today_entry(uid: str = Query(..., description="User ID required"), session: Session = Depends(get_session)):
-    """Get today's entry if it exists"""
-    today = datetime.now().date().isoformat()
-    entry = session.exec(
-        select(TimeuseEntry).where(TimeuseEntry.date == today, TimeuseEntry.uid == uid)
-    ).first()
-    return entry
-
-@app.get("/entries/{entry_id}", response_model=TimeuseEntryRead)
-def read_entry(entry_id: str, session: Session = Depends(get_session)):
-    """Get a specific entry by ID"""
-    entry = session.exec(
-        select(TimeuseEntry).where(TimeuseEntry.id == entry_id)
-    ).first()
-    if not entry:
-        raise HTTPException(status_code=404, detail="Entry not found")
-    return entry
-
-
 @app.get("/")
 def root():
     return {"message": "TUD API is running"}
@@ -272,109 +179,183 @@ def health_check(session: Session = Depends(get_session)):
     return {"status": "healthy", "entries_count": len(count)}
 
 
+# main.py
+from fastapi import FastAPI, Depends, HTTPException
+from sqlmodel import Session, select
+from typing import List, Tuple
 
-@app.get("/export/csv")
-def export_all_data_csv(session: Session = Depends(get_session)):
-    """
-    Export all health data as CSV for analysis in pandas/excel.
-    Note that this export all data, not limited to a specific user.
-    """
+app = FastAPI()
 
-    # Get all entries ordered by date
-    entries = session.exec(
-        select(TimeuseEntry).order_by(TimeuseEntry.date)
-    ).all()
+@app.post("/timeline/submit", response_model=TimeuseEntryRead)
+async def submit_timeline_data(
+    entry_data: TimeuseEntryCreate,
+    session: Session = Depends(get_session)
+):
+    # Validate that the study exists
+    study_name_short = entry_data.study_name_short
+    study = session.exec(
+        select(Study).where(Study.name_short == study_name_short)
+    ).first()
 
-    if not entries:
-        raise HTTPException(status_code=404, detail="No data to export")
+    if not study:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Study '{study_name_short}' not found. Valid studies: {get_available_studies(session)}"
+        )
 
-    # Create CSV in memory
-    output = io.StringIO()
-    writer = csv.writer(output)
+    # Validate that the daily_entry_index exists for this study
+    daily_entry_index = entry_data.daily_entry_index
+    entry_name_obj = session.exec(
+        select(StudyEntryName).where(
+            StudyEntryName.study_id == study.id,
+            StudyEntryName.entry_index == daily_entry_index
+        )
+    ).first()
 
-    # Define CSV headers - include all fields from your model
-    headers = [
-        'id', 'uid', 'date', 'timestamp', 'day_of_week', 'day_name', 'is_weekend',
-        'mood', 'pain', 'energy',
-        'allergy_state', 'allergy_medication',
-        'had_sex', 'sexual_wellbeing', 'sleep_quality',
-        'stress_level_work', 'stress_level_home',
-        'physical_activity', 'step_count', 'weather_enjoyment',
-        'daily_comments'
-    ]
+    if not entry_name_obj:
+        valid_indices = get_valid_entry_indices(session, study.id)
+        raise HTTPException(
+            status_code=400,
+            detail=f"Daily entry index {daily_entry_index} not found for study '{study_name_short}'. Valid indices: {valid_indices}"
+        )
 
-    # Add daily_activities columns (flatten the JSON)
-    # Get all possible activity keys from the first entry that has activities
-    activity_columns = set()
-    for entry in entries:
-        if entry.daily_activities:
-            activity_columns.update(entry.daily_activities.keys())
+    # Check if entry already exists for this participant+study+index combination
+    existing_entry = session.exec(
+        select(TimeuseEntry).where(
+            TimeuseEntry.participant_id == entry_data.metadata.participant.pid,
+            TimeuseEntry.study_id == study.id,
+            TimeuseEntry.daily_entry_index == daily_entry_index
+        )
+    ).first()
 
-    # Sort activity columns for consistent ordering
-    activity_columns = sorted(activity_columns)
-    headers.extend(activity_columns)
+    if existing_entry:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Entry already exists for participant {entry_data.metadata.participant.pid}, study {study_name_short}, index {daily_entry_index}"
+        )
 
-    writer.writerow(headers)
-
-    # Write data rows
-    for entry in entries:
-        row = [
-            entry.id,
-            entry.uid or 'default',
-            entry.date,
-            entry.timestamp.isoformat() if entry.timestamp else '',
-        ]
-
-        # Add activity columns (1 for present, 0 for absent)
-        activities = entry.daily_activities or {}
-        for activity in activity_columns:
-            row.append(1 if activities.get(activity) == 1 else 0)
-
-        writer.writerow(row)
-
-    # Return as downloadable CSV file
-    output.seek(0)
-    today = datetime.now().strftime("%Y-%m-%d")
-
-    return StreamingResponse(
-        iter([output.getvalue()]),
-        media_type="text/csv",
-        headers={
-            "Content-Disposition": f"attachment; filename=health_data_export_{today}.csv",
-            "Content-Type": "text/csv; charset=utf-8"
-        }
+    # Create main entry
+    db_entry = TimeuseEntry(
+        participant_id=entry_data.metadata.participant.pid,
+        study_id=study.id,
+        daily_entry_index=daily_entry_index,
+        metadata_json=entry_data.metadata.dict(),
+        raw_data=entry_data.dict()
     )
 
+    session.add(db_entry)
+    session.commit()
+    session.refresh(db_entry)
 
-@app.get("/export/json")
-def export_all_data_json(session: Session = Depends(get_session)):
-    """
-    Export all health data as JSON.
-    Note that this export all data, not limited to a specific user.
-    """
+    # Create activity entries
+    for activity_data in entry_data.activities:
+        db_activity = TimelineActivity(
+            timeuse_entry_id=db_entry.id,
+            **activity_data.dict()
+        )
+        session.add(db_activity)
 
-    entries = session.exec(
-        select(TimeuseEntry).order_by(TimeuseEntry.date)
-    ).all()
+    session.commit()
 
-    if not entries:
-        raise HTTPException(status_code=404, detail="No data to export")
-
-    # Convert to list of dicts
-    data = []
-    for entry in entries:
-        entry_dict = entry.dict()
-        # Convert datetime to ISO string for JSON serialization
-        entry_dict['timestamp'] = entry.timestamp.isoformat() if entry.timestamp else None
-        # Add computed properties
-        data.append(entry_dict)
-
-    today = datetime.now().strftime("%Y-%m-%d")
-
-    return Response(
-        content=json.dumps(data, indent=2, ensure_ascii=False),
-        media_type="application/json",
-        headers={
-            "Content-Disposition": f"attachment; filename=health_data_export_{today}.json"
-        }
+    # Return the created entry with study and entry name details
+    return TimeuseEntryRead(
+        id=db_entry.id,
+        participant_id=db_entry.participant_id,
+        study_id=db_entry.study_id,
+        daily_entry_index=db_entry.daily_entry_index,
+        submitted_at=db_entry.submitted_at,
+        activities=entry_data.activities,
+        metadata=entry_data.metadata,
+        raw_data=db_entry.raw_data,
+        study=StudyRead.from_orm(study),
+        entry_name=entry_name_obj.entry_name
     )
+
+def get_available_studies(session: Session) -> List[str]:
+    studies = session.exec(select(Study)).all()
+    return [study.name_short for study in studies]
+
+def get_valid_entry_indices(session: Session, study_id: int) -> List[Tuple[int, str]]:
+    entry_names = session.exec(
+        select(StudyEntryName).where(StudyEntryName.study_id == study_id)
+    ).all()
+    return [(en.entry_index, en.entry_name) for en in entry_names]
+
+# Study management endpoints
+@app.post("/studies/", response_model=StudyRead)
+async def create_study(study: StudyCreate, session: Session = Depends(get_session)):
+    existing = session.exec(
+        select(Study).where(Study.name_short == study.name_short)
+    ).first()
+
+    if existing:
+        raise HTTPException(status_code=400, detail="Study with this short name already exists")
+
+    db_study = Study.from_orm(study)
+    session.add(db_study)
+    session.commit()
+    session.refresh(db_study)
+
+    # Create entry names if provided
+    if study.entry_names:
+        for entry_name in study.entry_names:
+            db_entry_name = StudyEntryName(
+                study_id=db_study.id,
+                entry_index=entry_name.entry_index,
+                entry_name=entry_name.entry_name
+            )
+            session.add(db_entry_name)
+        session.commit()
+
+    return db_study
+
+@app.post("/studies/{study_id}/entry_names", response_model=StudyEntryNameRead)
+async def add_study_entry_name(
+    study_id: int,
+    entry_name: StudyEntryNameCreate,
+    session: Session = Depends(get_session)
+):
+    study = session.get(Study, study_id)
+    if not study:
+        raise HTTPException(status_code=404, detail="Study not found")
+
+    # Check if index or name already exists for this study
+    existing_index = session.exec(
+        select(StudyEntryName).where(
+            StudyEntryName.study_id == study_id,
+            StudyEntryName.entry_index == entry_name.entry_index
+        )
+    ).first()
+
+    existing_name = session.exec(
+        select(StudyEntryName).where(
+            StudyEntryName.study_id == study_id,
+            StudyEntryName.entry_name == entry_name.entry_name
+        )
+    ).first()
+
+    if existing_index:
+        raise HTTPException(status_code=400, detail=f"Entry index {entry_name.entry_index} already exists for this study")
+    if existing_name:
+        raise HTTPException(status_code=400, detail=f"Entry name '{entry_name.entry_name}' already exists for this study")
+
+    db_entry_name = StudyEntryName(
+        study_id=study_id,
+        entry_index=entry_name.entry_index,
+        entry_name=entry_name.entry_name
+    )
+    session.add(db_entry_name)
+    session.commit()
+    session.refresh(db_entry_name)
+    return db_entry_name
+
+@app.get("/studies/{study_id}/entry_names", response_model=List[StudyEntryNameRead])
+async def get_study_entry_names(study_id: int, session: Session = Depends(get_session)):
+    study = session.get(Study, study_id)
+    if not study:
+        raise HTTPException(status_code=404, detail="Study not found")
+
+    entry_names = session.exec(
+        select(StudyEntryName).where(StudyEntryName.study_id == study_id)
+    ).all()
+    return entry_names
