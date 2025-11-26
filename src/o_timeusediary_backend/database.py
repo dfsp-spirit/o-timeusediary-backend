@@ -13,7 +13,7 @@ engine = create_engine(settings.database_url)
 
 def create_db_and_tables(do_report_contents: bool = False):
     SQLModel.metadata.create_all(engine)
-    create_default_studies(settings.studies_config_path)
+    create_config_file_studies(settings.studies_config_path)
     if do_report_contents:
         report_on_db_contents()
 
@@ -45,13 +45,10 @@ def report_on_db_contents():
 
 
 
-def create_default_studies(config_path: str):
+def create_config_file_studies(config_path: str):
     """Create studies from configuration file"""
-    try:
-        config = load_studies_config(config_path)
-    except FileNotFoundError:
-        logger.warning("No studies configuration file found. Using default fallback.")
-        config = get_fallback_config()
+
+    config = load_studies_config(config_path)    # will raise exception if invalid, which is fine: that file is required
 
     logger.info(f"Checking whether studies need to be created based on config file at '{config_path}'")
 
@@ -87,20 +84,6 @@ def create_default_studies(config_path: str):
 
         session.commit()
 
-def get_fallback_config():
-    """Provide fallback configuration if no config file is found"""
-    from .studies_config import StudiesConfig, StudyConfig
-
-    return StudiesConfig(
-        studies=[
-            StudyConfig(
-                name="Default Study",
-                name_short="default",
-                description="Default study for time use research",
-                entry_names=["default"]
-            )
-        ]
-    )
 
 def get_session() -> Generator[Session, None, None]:
     with Session(engine) as session:

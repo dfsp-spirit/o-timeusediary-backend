@@ -1,256 +1,138 @@
-from datetime import datetime
+from sqlmodel import SQLModel, Field, Relationship, JSON, Column
 from typing import Optional, List, Dict, Any
-from sqlmodel import SQLModel, Field, Column, Relationship
-from sqlalchemy.dialects.postgresql import JSONB
-from pydantic import model_validator, ConfigDict
+from datetime import datetime
+from pydantic import BaseModel
 import uuid
+from sqlalchemy import Text
 
-# Study table (internal models - no case conversion needed)
-class StudyBase(SQLModel):
-    name: str = Field(index=True, unique=True)
+class Participant(SQLModel, table=True):
+    __tablename__ = "participants"
+
+    id: str = Field(primary_key=True)  # External ID like "bernddasbrot", "annasmith"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    # Relationships
+    study_associations: List["StudyParticipant"] = Relationship(back_populates="participant")
+    submissions: List["Submission"] = Relationship(back_populates="participant")
+
+class Study(SQLModel, table=True):
+    __tablename__ = "studies"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(index=True)
     name_short: str = Field(index=True, unique=True)
-    description: Optional[str] = None
+    description: str
+    entry_names: List[str] = Field(sa_column=Column(JSON))  # e.g., ["monday", "tuesday", ...] or ["typical_weekend", "workday"]
+    study_participant_ids: List[str] = Field(sa_column=Column(JSON))  # allowed participant IDs from config
+    allow_unlisted_participants: bool = Field(default=True)
+    activities_json_url: str
+    data_collection_start: datetime
+    data_collection_end: datetime
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
-class Study(StudyBase, table=True):
+    # Relationships
+    submissions: List["Submission"] = Relationship(back_populates="study")
+    activity_configs: List["StudyActivityConfig"] = Relationship(back_populates="study")
+    participant_associations: List["StudyParticipant"] = Relationship(back_populates="study")
+
+class StudyParticipant(SQLModel, table=True):
+    """Link table for study-participant associations"""
+    __tablename__ = "study_participants"
+
     id: Optional[int] = Field(default=None, primary_key=True)
-    entry_names: List["StudyEntryName"] = Relationship(back_populates="study")
+    study_id: int = Field(foreign_key="studies.id")
+    participant_id: str = Field(foreign_key="participants.id")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
-# Study entry names mapping table
-class StudyEntryNameBase(SQLModel):
-    entry_index: int = Field(ge=0)
+    # Relationships
+    study: Study = Relationship(back_populates="participant_associations")
+    participant: Participant = Relationship(back_populates="study_associations")
+
+class Submission(SQLModel, table=True):
+    __tablename__ = "submissions"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    uuid: str = Field(default_factory=lambda: str(uuid.uuid4()), unique=True, index=True)
+    study_id: int = Field(foreign_key="studies.id")
+    participant_id: str = Field(foreign_key="participants.id")
+    entry_name: str  # Must be in study.entry_names
+
+    # Metadata (for tracking, not research)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    total_duration_minutes: int = Field(default=0)  # Sum of all timeline entries
+    is_complete: bool = Field(default=False)
+
+    # Relationships
+    study: Study = Relationship(back_populates="submissions")
+    participant: Participant = Relationship(back_populates="submissions")
+    timeline_entries: List["TimelineEntry"] = Relationship(back_populates="submission")
+
+class TimelineEntry(SQLModel, table=True):
+    __tablename__ = "timeline_entries"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    submission_id: int = Field(foreign_key="submissions.id")
+    timeline_type: str = Field(index=True)  # "primary", "digitalmediause", etc.
+
+    # Core research data - time of day without date
+    activity_code: int = Field(index=True)
+    start_minutes: int  # Minutes since midnight (0-1439)
+    end_minutes: int    # Minutes since midnight (0-1439)
+    duration_minutes: int  # Calculated: end_minutes - start_minutes
+    custom_input: Optional[str] = Field(default=None, sa_column=Column(Text))
+
+    # Hierarchy information
+    parent_activity_code: Optional[int] = Field(default=None, index=True)
+
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    # Relationships
+    submission: Submission = Relationship(back_populates="timeline_entries")
+
+class StudyActivityConfig(SQLModel, table=True):
+    """Stores the activity configuration for each study for reproducibility"""
+    __tablename__ = "study_activity_configs"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    study_id: int = Field(foreign_key="studies.id", unique=True)
+    activities_config: Dict[str, Any] = Field(sa_column=Column(JSON))  # The entire activities JSON
+    config_hash: str  # Hash of the config for change detection
+    fetched_at: datetime = Field(default_factory=datetime.utcnow)
+
+    # Relationships
+    study: Study = Relationship(back_populates="activity_configs")
+
+# Pydantic models for API requests/responses
+class TimelineEntryCreate(BaseModel):
+    timeline_type: str
+    activity_code: int
+    start_minutes: int
+    end_minutes: int
+    custom_input: Optional[str] = None
+    parent_activity_code: Optional[int] = None
+
+class SubmissionCreate(BaseModel):
     entry_name: str
+    timeline_entries: List[TimelineEntryCreate]
 
-class StudyEntryName(StudyEntryNameBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    study_id: int = Field(foreign_key="study.id", index=True)
-    study: Study = Relationship(back_populates="entry_names")
-
-    class Config:
-        unique_together = [("study_id", "entry_index"), ("study_id", "entry_name")]
-
-# Study API models
-class StudyEntryNameCreate(StudyEntryNameBase):
-    pass
-
-class StudyEntryNameRead(StudyEntryNameBase):
+class SubmissionResponse(BaseModel):
     id: int
-
-class StudyCreate(StudyBase):
-    entry_names: Optional[List[StudyEntryNameCreate]] = None
-
-class StudyRead(StudyBase):
-    id: int
-    entry_names: List[StudyEntryNameRead]
-
-# Table model for activities (database - snake_case)
-class TimelineActivityBase(SQLModel):
-    timeline_key: str = Field(index=True)
-    activity: str = Field(index=True)
-    category: str = Field(index=True)
-    start_time: str
-    end_time: str
-    block_length: int = Field(ge=0)
-    color: str
-    parent_activity: str
-    is_custom_input: bool
-    original_selection: str
-    start_minutes: int = Field(ge=0, le=1440)
-    end_minutes: int = Field(ge=0, le=1440)
-    mode: str = Field(index=True)
-    count: int = Field(ge=1)
-    frontend_activity_id: str = Field(index=True)
-
-class TimelineActivity(TimelineActivityBase, table=True):
-    id: Optional[str] = Field(
-        default_factory=lambda: str(uuid.uuid4()),
-        primary_key=True
-    )
-    timeuse_entry_id: str = Field(foreign_key="timeuseentry.id", index=True)
-    selections: Optional[Dict[str, Any]] = Field(
-        default=None,
-        sa_column=Column(JSONB)
-    )
-    available_options: Optional[Dict[str, Any]] = Field(
-        default=None,
-        sa_column=Column(JSONB)
-    )
-
-class TimelineActivityCreate(SQLModel):
-    timeline_key: str
-    activity: str
-    category: str
-    start_time: str
-    end_time: str
-    block_length: int
-    color: str
-    parent_activity: str
-    is_custom_input: bool
-    original_selection: str
-    start_minutes: int
-    end_minutes: int
-    mode: str
-    selections: Optional[Dict[str, Any]] = None
-    available_options: Optional[Dict[str, Any]] = Field(default=None)
-    count: int
-    frontend_activity_id: str
-
-    model_config = ConfigDict(
-        extra='forbid'
-    )
-
-    @model_validator(mode='after')
-    def validate_count_based_on_mode(self):
-        mode = self.mode
-        count = self.count
-        selections = self.selections
-
-        if mode == 'single-choice':
-            if count != 1:
-                raise ValueError('Count must be 1 for single-choice activities')
-            if selections is not None:
-                raise ValueError('Selections must be null for single-choice activities')
-        elif mode == 'multiple-choice':
-            if selections is None:
-                raise ValueError('Selections cannot be null for multiple-choice activities')
-            expected_count = len(selections) if isinstance(selections, (list, dict)) else 0
-            if count != expected_count:
-                raise ValueError(f'Count must match number of selections. Expected {expected_count}, got {count}')
-        else:
-            raise ValueError(f'Invalid mode: {mode}')
-
-        return self
-
-    @model_validator(mode='after')
-    def validate_available_options(self):
-        if self.mode == 'multiple-choice' and self.available_options is None:
-            raise ValueError('available_options must be provided for multiple-choice activities')
-        return self
-
-class StudyMetadata(SQLModel):
-    study_name: str = Field(..., min_length=1)
-    daily_entry_index: int = Field(..., ge=0)
-
-
-class ParticipantMetadata(SQLModel):
-    pid: str = Field(..., min_length=1)
-
-class TimelineMetadata(SQLModel):
-    study: StudyMetadata
-    participant: ParticipantMetadata
-
-
-    @model_validator(mode='after')
-    def validate_required_metadata(self):
-        if not self.study or not self.participant:
-            raise ValueError('Study and participant metadata are required')
-        return self
-
-class TimeuseEntryCreate(SQLModel):
-    activities: List[TimelineActivityCreate] = Field(..., min_items=1)
-    entry_metadata: TimelineMetadata
-
-    model_config = ConfigDict(
-        extra='forbid'
-    )
-
-    @model_validator(mode='after')
-    def validate_activities_non_empty(self):
-        if not self.activities:
-            raise ValueError('At least one activity must be provided')
-        return self
-
-    @property
-    def study_name_short(self) -> str:
-        return self.entry_metadata.study.study_name
-
-    @property
-    def daily_entry_index(self) -> int:
-        return self.entry_metadata.study.daily_entry_index
-
-class TimelineActivityResponse(SQLModel):
-    timeline_key: str
-    activity: str
-    category: str
-    start_time: str
-    end_time: str
-    block_length: int
-    color: str
-    parent_activity: str
-    is_custom_input: bool
-    original_selection: str
-    start_minutes: int
-    end_minutes: int
-    mode: str
-    selections: Optional[Dict[str, Any]] = None
-    available_options: Optional[Dict[str, Any]] = Field(default=None)
-    count: int
-    frontend_activity_id: str
-
-    model_config = ConfigDict(
-        from_attributes=True
-    )
-
-class StudyMetadataResponse(SQLModel):
+    uuid: str
     study_name: str
-    daily_entry_index: int
-
-    model_config = ConfigDict(
-        from_attributes=True
-    )
-
-class ParticipantMetadataResponse(SQLModel):
-    pid: str
-
-    model_config = ConfigDict(from_attributes=True)
-
-class TimelineMetadataResponse(SQLModel):
-    study: StudyMetadataResponse
-    participant: ParticipantMetadataResponse
-
-    model_config = ConfigDict(from_attributes=True)
-
-class TimeuseEntryRead(SQLModel):
-    id: str
     participant_id: str
-    study_id: int
-    daily_entry_index: int
-    submitted_at: datetime
-    activities: List[TimelineActivityResponse]
-    entry_metadata: TimelineMetadataResponse
-    raw_data: Optional[Dict[str, Any]] = Field(default=None)
-    study: StudyRead
     entry_name: str
+    created_at: datetime
+    is_complete: bool
+    total_duration_minutes: int
+    timeline_entries: List[Dict[str, Any]]
 
-    model_config = ConfigDict(
-        from_attributes=True
-    )
-
-# Main entry models (internal)
-class TimeuseEntryBase(SQLModel):
-    participant_id: str = Field(index=True)
-    study_id: int = Field(foreign_key="study.id", index=True)
-    daily_entry_index: int = Field(ge=0, index=True)
-    submitted_at: datetime = Field(default_factory=datetime.utcnow)
-
-class TimeuseEntry(TimeuseEntryBase, table=True):
-    id: Optional[str] = Field(
-        default_factory=lambda: str(uuid.uuid4()),
-        primary_key=True
-    )
-    raw_data: Optional[Dict[str, Any]] = Field(
-        default=None,
-        sa_column=Column(JSONB)
-    )
-    entry_metadata_json: Optional[Dict[str, Any]] = Field(
-        default=None,
-        sa_column=Column(JSONB)
-    )
-
-    class Config:
-        unique_together = [("participant_id", "study_id", "daily_entry_index")]
-
-class TimeuseEntryUpdate(SQLModel):
-    participant_id: Optional[str] = None
-    study_id: Optional[int] = None
-    daily_entry_index: Optional[int] = None
-    entry_metadata_json: Optional[Dict[str, Any]] = None
+class StudyResponse(BaseModel):
+    id: int
+    name: str
+    name_short: str
+    description: str
+    entry_names: List[str]
+    allow_unlisted_participants: bool
+    data_collection_start: datetime
+    data_collection_end: datetime
