@@ -16,14 +16,14 @@ from sqlmodel import Session, select
 from urllib.parse import urlparse
 import sys, argparse
 
-
+from .activities_config import load_activities_config
 
 from .logging_config import setup_logging
 setup_logging()
 logger = logging.getLogger(__name__)
 
 from . settings import settings
-from .models import Study
+from .models import Activity, Study
 from .database import get_session, create_db_and_tables
 
 
@@ -177,9 +177,47 @@ async def validation_exception_handler(request: Request, exc: ValidationError):
 def root():
     return {"message": "TUD API is running"}
 
-#@app.get("/api/health")
-#def health_check(session: Session = Depends(get_session)):
-#    count = session.exec(select(TimeuseEntry)).all()
-#    return {"status": "healthy", "entries_count": len(count)}
+@app.get("/api/health")
+def health_check(session: Session = Depends(get_session)):
+    count = session.exec(select(Activity)).all()
+    return {"status": "healthy", "entries_count": len(count)}
 
 
+@app.get("/api/studies/{study_name_short}/activities-config")
+def get_study_activities_config(
+    study_name_short: str,
+    session: Session = Depends(get_session)
+):
+    """
+    Get the activities configuration (activities.json) for a study.
+    This returns the exact configuration that was used when the study was created.
+
+    Example request:
+    curl -X GET "http://localhost:8000/api/studies/default/activities-config" -H "Accept: application/json"
+    """
+    # Find the study
+    study = session.exec(
+        select(Study).where(Study.name_short == study_name_short)
+    ).first()
+
+    if not study:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Study '{study_name_short}' not found"
+        )
+
+    # Try to load the activities config from the file
+    try:
+        activities_config = load_activities_config(study.activities_json_url)
+        return activities_config.dict()
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Activities configuration file not found: {study.activities_json_url}"
+        )
+    except Exception as e:
+        logger.error(f"Error loading activities config for study {study_name_short}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error loading activities configuration: {str(e)}"
+        )
