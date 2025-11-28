@@ -88,7 +88,8 @@ class Activity(SQLModel, table=True):
     activity_code: int = Field(index=True)
     start_minutes: int  # Minutes since midnight (0-1439)
     end_minutes: int    # Minutes since midnight (0-1439)
-    custom_input: Optional[str] = Field(default=None, sa_column=Column(Text))
+    activity_name: str = Field(index=True)  # Name of the activity as per activities.json, or for a custom input the value the user entered
+    activity_path_frontend: str
 
     # Hierarchy information
     parent_activity_code: Optional[int] = Field(default=None, index=True)

@@ -23,7 +23,7 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 from . settings import settings
-from .models import Activity, Study
+from .models import Activity, Study, Timeline, DayLabel, StudyParticipant
 from .database import get_session, create_db_and_tables
 
 
@@ -221,3 +221,184 @@ def get_study_activities_config(
             status_code=500,
             detail=f"Error loading activities configuration: {str(e)}"
         )
+
+from pydantic import BaseModel
+from typing import List, Optional, Union
+
+class ActivitySubmitItem(BaseModel):
+    timeline_key: str
+    activity: str  # For reference/debugging and to compute activity path
+    category: str  # For reference/debugging and to compute activity path
+    code: Optional[int] = None  # For single-choice only
+    codes: Optional[List[int]] = None  # For multiple-choice only: several codes for several activities that were done in parallel
+    parent_activity_name: Optional[str] = None   # only set if this is a child activity, ignore if these is no parent_activity_code (in that case it is identical to activity, and this is NOT a child activity. frontend should be fixed not to send it then.)
+    parent_activity_code: Optional[int] = None   # only set if this is a child activity
+    original_selection: Optional[str] = None  # only set if this is a custom text input, it then shows the prompt text like "Other sport, please specify".
+    start_minutes: int
+    end_minutes: int
+    mode: str  # "single-choice" or "multiple-choice"
+
+class ActivitiesSubmitRequest(BaseModel):
+    activities: List[ActivitySubmitItem]
+
+
+def compute_activity_path(activity_item: ActivitySubmitItem) -> str:
+    parts = []
+
+    # Always include timeline
+    parts.append(f"timeline:{activity_item.timeline_key}")
+
+    # Include category if present and not empty
+    if activity_item.category and activity_item.category.strip() and activity_item.category != " ":
+        parts.append(f"category:{activity_item.category}")
+
+    # Include parent if different from activity (true hierarchy)
+    if (activity_item.parent_activity_code and
+        activity_item.parent_activity_name and
+        activity_item.parent_activity_name != activity_item.activity):
+        parts.append(f"parent:{activity_item.parent_activity_name}")
+
+    if activity_item.original_selection and activity_item.original_selection.strip() and activity_item.original_selection != activity_item.activity:
+        parts.append(f"custom_input_prompt:{activity_item.original_selection}")
+
+    # Always include the actual activity
+    parts.append(f"activity:{activity_item.activity}")
+
+    return " > ".join(parts)
+
+@app.post("/api/studies/{study_name_short}/participants/{participant_id}/day_labels/{day_label_name}/activities")
+def submit_activities(
+    study_name_short: str,
+    participant_id: str,
+    day_label_name: str,
+    activities_data: ActivitiesSubmitRequest,
+    session: Session = Depends(get_session)
+):
+    """
+    Submit activities for a specific day label in a study.
+    Handles both single-choice and multiple-choice timelines.
+    """
+    # Validate study exists
+    study = session.exec(
+        select(Study).where(Study.name_short == study_name_short)
+    ).first()
+    if not study:
+        raise HTTPException(status_code=404, detail=f"Study '{study_name_short}' not found")
+
+    # Validate participant is allowed for this study
+    if not study.allow_unlisted_participants:
+        study_participant = session.exec(
+            select(StudyParticipant).where(
+                StudyParticipant.study_id == study.id,
+                StudyParticipant.participant_id == participant_id
+            )
+        ).first()
+        if not study_participant:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Participant '{participant_id}' not authorized for this study"
+            )
+
+    # Validate day label exists for this study
+    day_label = session.exec(
+        select(DayLabel).where(
+            DayLabel.study_id == study.id,
+            DayLabel.name == day_label_name
+        )
+    ).first()
+    if not day_label:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Day label '{day_label_name}' not found for study '{study_name_short}'"
+        )
+
+    # Get all timelines for this study to validate timeline keys
+    study_timelines = session.exec(
+        select(Timeline).where(Timeline.study_id == study.id)
+    ).all()
+    timeline_map = {timeline.name: timeline for timeline in study_timelines}
+
+    created_activities = []
+
+    for activity_item in activities_data.activities:
+        # Validate timeline exists
+        timeline = timeline_map.get(activity_item.timeline_key)
+        if not timeline:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unknown timeline '{activity_item.timeline_key}' for study '{study_name_short}'"
+            )
+
+        # Handle single-choice activity
+        if activity_item.mode == "single-choice":
+            if not activity_item.code:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Single-choice activity missing 'code' for timeline '{activity_item.timeline_key}'"
+                )
+
+            activity = Activity(
+                study_id=study.id,
+                participant_id=participant_id,
+                day_label_id=day_label.id,
+                timeline_id=timeline.id,
+                activity_code=activity_item.code,
+                start_minutes=activity_item.start_minutes,
+                end_minutes=activity_item.end_minutes,
+                activity_name=activity_item.activity,
+                activity_path_frontend=compute_activity_path(activity_item),
+            )
+            session.add(activity)
+            created_activities.append(activity)
+
+        # Handle multiple-choice activity
+        elif activity_item.mode == "multiple-choice":
+            if not activity_item.codes:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Multiple-choice activity missing 'codes' for timeline '{activity_item.timeline_key}'"
+                )
+
+            # Create one activity record for each selected code
+            for code_str in activity_item.codes:
+                try:
+                    code = int(code_str)
+                except (ValueError, TypeError):
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid activity code '{code_str}' for timeline '{activity_item.timeline_key}'"
+                    )
+
+                activity = Activity(
+                    study_id=study.id,
+                    participant_id=participant_id,
+                    day_label_id=day_label.id,
+                    timeline_id=timeline.id,
+                    activity_code=code,
+                    start_minutes=activity_item.start_minutes,
+                    end_minutes=activity_item.end_minutes,
+                    custom_input=None
+                )
+                session.add(activity)
+                created_activities.append(activity)
+
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unknown activity mode '{activity_item.mode}'"
+            )
+
+    # Commit all activities
+    session.commit()
+
+    # Refresh to get IDs
+    for activity in created_activities:
+        session.refresh(activity)
+
+    return {
+        "message": f"Successfully submitted {len(created_activities)} activities",
+        "study": study_name_short,
+        "participant": participant_id,
+        "day_label": day_label_name,
+        "activity_count": len(created_activities)
+    }
