@@ -4,6 +4,7 @@ from typing import List, Optional, Dict, Any, Set
 from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 import json
 from pathlib import Path
+from functools import lru_cache
 
 class ActivityItem(BaseModel):
     name: str
@@ -122,3 +123,129 @@ def load_activities_config(config_path: str) -> ActivitiesConfig:
         data = json.load(f)
 
     return ActivitiesConfig(**data)
+
+
+# ============================================================================
+# Caching and Validation Helpers
+# ============================================================================
+
+@lru_cache(maxsize=10)
+def get_cached_activities_config(config_path: str) -> ActivitiesConfig:
+    """
+    Load and cache activities config.
+    Uses LRU cache to avoid repeated file reads.
+    """
+    return load_activities_config(config_path)
+
+
+def get_all_activity_codes(config: ActivitiesConfig) -> Dict[int, Dict[str, Any]]:
+    """
+    Extract all activity codes from the config with their context.
+    Returns a dictionary mapping code -> context info.
+    """
+    codes_info = {}
+
+    def collect_codes(activities: List[ActivityItem], context: Dict[str, str]) -> None:
+        for activity in activities:
+            # Store code with context
+            codes_info[activity.code] = {
+                "name": activity.name,
+                "label": activity.label,
+                "short": activity.short,
+                "vshort": activity.vshort,
+                "color": activity.color,
+                "examples": activity.examples,
+                "is_custom_input": activity.is_custom_input,
+                "timeline": context.get("timeline"),
+                "category": context.get("category"),
+                "is_child": context.get("is_child", False),
+                "parent_name": context.get("parent_name")
+            }
+
+            # Recursively collect child items
+            if activity.childItems:
+                child_context = context.copy()
+                child_context["is_child"] = True
+                child_context["parent_name"] = activity.name
+                collect_codes(activity.childItems, child_context)
+
+    # Collect codes from all timelines
+    for timeline_name, timeline_config in config.timeline.items():
+        for category in timeline_config.categories:
+            context = {
+                "timeline": timeline_name,
+                "category": category.name
+            }
+            collect_codes(category.activities, context)
+
+    return codes_info
+
+
+def get_activity_codes_set(config: ActivitiesConfig) -> Set[int]:
+    """
+    Get a simple set of all activity codes.
+    Useful for quick membership checks.
+    """
+    all_codes = set()
+
+    def collect_codes_set(activities: List[ActivityItem]) -> None:
+        for activity in activities:
+            all_codes.add(activity.code)
+            if activity.childItems:
+                collect_codes_set(activity.childItems)
+
+    for timeline_config in config.timeline.values():
+        for category in timeline_config.categories:
+            collect_codes_set(category.activities)
+
+    return all_codes
+
+
+@lru_cache(maxsize=10)
+def get_cached_activity_codes(config_path: str) -> Set[int]:
+    """
+    Get cached set of activity codes for a config file.
+    """
+    config = get_cached_activities_config(config_path)
+    return get_activity_codes_set(config)
+
+
+def validate_activity_code(config_path: str, code: int) -> bool:
+    """
+    Validate that an activity code exists in the config.
+    Returns True if valid, False otherwise.
+    """
+    valid_codes = get_cached_activity_codes(config_path)
+    return code in valid_codes
+
+
+def get_activity_info(config_path: str, code: int) -> Optional[Dict[str, Any]]:
+    """
+    Get detailed info about an activity by its code.
+    Returns None if code not found.
+    """
+    config = get_cached_activities_config(config_path)
+    all_codes_info = get_all_activity_codes(config)
+    return all_codes_info.get(code)
+
+
+def validate_multiple_activity_codes(config_path: str, codes: List[int]) -> Dict[str, Any]:
+    """
+    Validate multiple activity codes at once.
+    Returns dict with validation results.
+    """
+    valid_codes = get_cached_activity_codes(config_path)
+    results = {
+        "valid": [],
+        "invalid": [],
+        "all_valid": True
+    }
+
+    for code in codes:
+        if code in valid_codes:
+            results["valid"].append(code)
+        else:
+            results["invalid"].append(code)
+            results["all_valid"] = False
+
+    return results

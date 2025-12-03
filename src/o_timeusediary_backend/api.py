@@ -26,7 +26,11 @@ from . settings import settings
 from .models import Activity, Study, Timeline, DayLabel, StudyParticipant, Participant
 from .database import get_session, create_db_and_tables
 
-
+from .api_deps.activities import (
+    validate_activity_code_dependency,
+    get_activity_info_dependency,
+    get_study_activity_codes
+)
 
 
 @asynccontextmanager
@@ -290,6 +294,7 @@ def submit_activities(
     """
     Submit activities for a specific day label in a study.
     Handles both single-choice and multiple-choice timelines.
+    Rejects entire submission if any activity code is invalid (frontend-backend config mismatch).
     """
     # Validate study exists
     study = session.exec(
@@ -297,6 +302,19 @@ def submit_activities(
     ).first()
     if not study:
         raise HTTPException(status_code=404, detail=f"Study '{study_name_short}' not found")
+
+    # Get all valid activity codes for this study
+    try:
+        valid_codes = get_study_activity_codes(study_name_short, session)
+    except HTTPException as e:
+        # Re-raise the HTTP exception
+        raise e
+    except Exception as e:
+        logger.error(f"Error loading activity codes for study {study_name_short}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Could not load activity configuration for validation"
+        )
 
     # Validate/Create participant based on study settings
     if not study.allow_unlisted_participants:
@@ -361,7 +379,9 @@ def submit_activities(
     timeline_map = {timeline.name: timeline for timeline in study_timelines}
 
     created_activities = []
+    invalid_codes = []
 
+    # PHASE 1: Validate all activity codes before creating any records
     for activity_item in activities_data.activities:
         # Validate timeline exists
         timeline = timeline_map.get(activity_item.timeline_key)
@@ -380,6 +400,61 @@ def submit_activities(
                     detail=f"Single-choice activity missing 'code' for timeline '{activity_item.timeline_key}'"
                 )
 
+            # Validate the activity code
+            if activity_item.code not in valid_codes:
+                invalid_codes.append({
+                    "code": activity_item.code,
+                    "timeline": activity_item.timeline_key,
+                    "activity_name": activity_item.activity,
+                    "type": "single-choice"
+                })
+
+        # Handle multiple-choice activity
+        elif activity_item.mode == "multiple-choice":
+            if not activity_item.codes:
+                logger.info(f"Multiple-choice activity missing 'codes' for timeline '{activity_item.timeline_key}'")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Multiple-choice activity missing 'codes' for timeline '{activity_item.timeline_key}'"
+                )
+
+            # Validate all codes in this multiple-choice activity
+            for code in activity_item.codes:
+                if code not in valid_codes:
+                    invalid_codes.append({
+                        "code": code,
+                        "timeline": activity_item.timeline_key,
+                        "activity_name": activity_item.activity,
+                        "type": "multiple-choice"
+                    })
+
+        else:
+            logger.info(f"Unknown activity mode '{activity_item.mode}' for study '{study_name_short}'")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unknown activity mode '{activity_item.mode}'"
+            )
+
+    # REJECT ENTIRE SUBMISSION IF ANY INVALID CODE - FATAL CONFIG MISMATCH
+    if invalid_codes:
+        logger.error(f"FATAL CONFIG MISMATCH: Invalid activity codes detected for study '{study_name_short}'. "
+                     f"Frontend-backend configuration mismatch! Invalid codes: {invalid_codes}")
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": "FATAL: Invalid activity codes detected. Frontend and backend configuration mismatch!",
+                "error_type": "configuration_mismatch",
+                "invalid_codes": invalid_codes,
+                "total_invalid": len(invalid_codes),
+                "suggestion": "Check that the activities.json file used by frontend matches the backend configuration at: " + study.activities_json_url
+            }
+        )
+
+    # PHASE 2: Create all activities (all codes are valid)
+    for activity_item in activities_data.activities:
+        timeline = timeline_map[activity_item.timeline_key]
+
+        if activity_item.mode == "single-choice":
             activity = Activity(
                 study_id=study.id,
                 participant_id=participant_id,
@@ -394,17 +469,8 @@ def submit_activities(
             session.add(activity)
             created_activities.append(activity)
 
-        # Handle multiple-choice activity
         elif activity_item.mode == "multiple-choice":
-            if not activity_item.codes:
-                logger.info(f"Multiple-choice activity missing 'codes' for timeline '{activity_item.timeline_key}'")
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Multiple-choice activity missing 'codes' for timeline '{activity_item.timeline_key}'"
-                )
-
-            # Create one activity record for each selected code
-            for code in activity_item.codes:  # Now codes are already integers
+            for code in activity_item.codes:
                 activity = Activity(
                     study_id=study.id,
                     participant_id=participant_id,
@@ -419,13 +485,6 @@ def submit_activities(
                 session.add(activity)
                 created_activities.append(activity)
 
-        else:
-            logger.info(f"Unknown activity mode '{activity_item.mode}' for study '{study_name_short}'")
-            raise HTTPException(
-                status_code=400,
-                detail=f"Unknown activity mode '{activity_item.mode}'"
-            )
-
     # Commit all activities
     session.commit()
 
@@ -438,5 +497,7 @@ def submit_activities(
         "study": study_name_short,
         "participant": participant_id,
         "day_label": day_label_name,
-        "activity_count": len(created_activities)
+        "activity_count": len(created_activities),
+        "validation": "All activity codes validated against study configuration",
+        "config_source": study.activities_json_url
     }
