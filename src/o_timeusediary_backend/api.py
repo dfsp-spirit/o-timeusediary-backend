@@ -33,6 +33,11 @@ from .api_deps.activities import (
     get_activity_info_dependency,
     get_study_activity_codes
 )
+from fastapi.responses import HTMLResponse
+from datetime import datetime
+from sqlalchemy import func
+
+
 
 security = HTTPBasic()
 
@@ -538,3 +543,186 @@ def submit_activities(
         "validation": "All activity codes validated against study configuration",
         "config_source": study.activities_json_url
     }
+
+
+
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_overview(
+    request: Request,  # Add this parameter
+    current_admin: str = Depends(verify_admin),
+    session: Session = Depends(get_session)
+):
+    """
+    Admin overview page showing database contents.
+    Shows studies, participants, timelines, and activities.
+    """
+    # Get all studies with their relationships
+    studies = session.exec(
+        select(Study).order_by(Study.created_at.desc())
+    ).all()
+
+    # Prepare data structure for template
+    studies_data = []
+
+    for study in studies:
+        # Get day labels for this study
+        day_labels = session.exec(
+            select(DayLabel)
+            .where(DayLabel.study_id == study.id)
+            .order_by(DayLabel.display_order)
+        ).all()
+
+        # Get timelines for this study
+        timelines = session.exec(
+            select(Timeline)
+            .where(Timeline.study_id == study.id)
+        ).all()
+
+        # Get participants for this study
+        study_participants = session.exec(
+            select(StudyParticipant)
+            .where(StudyParticipant.study_id == study.id)
+        ).all()
+
+        # Get participant details
+        participants = []
+        for sp in study_participants:
+            participant = session.get(Participant, sp.participant_id)
+            if participant:
+                # Get activity count for this participant in this study
+                participant_activity_count = session.exec(
+                    select(func.count(Activity.id))
+                    .where(
+                        Activity.study_id == study.id,
+                        Activity.participant_id == participant.id
+                    )
+                ).first() or 0
+
+                participants.append({
+                    "id": participant.id,
+                    "created_at": participant.created_at,
+                    "joined_study_at": sp.created_at,
+                    "activity_count": participant_activity_count
+                })
+
+        # Get activities for this study (first 10 for preview)
+        activities = session.exec(
+            select(Activity)
+            .where(Activity.study_id == study.id)
+            .order_by(Activity.created_at.desc())
+            .limit(10)
+        ).all()
+
+        # Enrich activities with related data
+        enriched_activities = []
+        for activity in activities:
+            participant = session.get(Participant, activity.participant_id)
+            day_label = session.get(DayLabel, activity.day_label_id)
+            timeline = session.get(Timeline, activity.timeline_id)
+
+            enriched_activities.append({
+                "id": activity.id,
+                "participant_id": activity.participant_id,
+                "participant_name": participant.id if participant else "Unknown",
+                "day_label": day_label.name if day_label else "Unknown",
+                "timeline": timeline.name if timeline else "Unknown",
+                "timeline_display_name": timeline.display_name if timeline else "Unknown",
+                "activity_code": activity.activity_code,
+                "activity_name": activity.activity_name,
+                "activity_path_frontend": activity.activity_path_frontend,
+                "start_minutes": activity.start_minutes,
+                "end_minutes": activity.end_minutes,
+                "time_range": f"{activity.start_minutes//60:02d}:{activity.start_minutes%60:02d} - {activity.end_minutes//60:02d}:{activity.end_minutes%60:02d}",
+                "duration": activity.end_minutes - activity.start_minutes,
+                "parent_activity_code": activity.parent_activity_code,
+                "created_at": activity.created_at
+            })
+
+        # Get total activity count for this study
+        total_activities = session.exec(
+            select(func.count(Activity.id))
+            .where(Activity.study_id == study.id)
+        ).first() or 0
+
+        # Get timeline statistics
+        timeline_stats = []
+        for timeline in timelines:
+            timeline_activity_count = session.exec(
+                select(func.count(Activity.id))
+                .where(
+                    Activity.study_id == study.id,
+                    Activity.timeline_id == timeline.id
+                )
+            ).first() or 0
+
+            timeline_stats.append({
+                "name": timeline.name,
+                "display_name": timeline.display_name,
+                "mode": timeline.mode,
+                "activity_count": timeline_activity_count,
+                "description": timeline.description,
+                "min_coverage": timeline.min_coverage
+            })
+
+        studies_data.append({
+            "study": study,
+            "day_labels": day_labels,
+            "timelines": timelines,
+            "timeline_stats": timeline_stats,
+            "participants": participants,
+            "activities_preview": enriched_activities,
+            "total_activities": total_activities,
+            "participant_count": len(participants)
+        })
+
+    # Get database-wide statistics
+    total_studies = len(studies)
+
+    total_participants = session.exec(
+        select(func.count(Participant.id))
+    ).first() or 0
+
+    total_activities_all = session.exec(
+        select(func.count(Activity.id))
+    ).first() or 0
+
+    # Get recent activities (last 10 overall)
+    recent_activities = session.exec(
+        select(Activity)
+        .order_by(Activity.created_at.desc())
+        .limit(10)
+    ).all()
+
+    enriched_recent_activities = []
+    for activity in recent_activities:
+        study = session.get(Study, activity.study_id)
+        participant = session.get(Participant, activity.participant_id)
+        day_label = session.get(DayLabel, activity.day_label_id)
+        timeline = session.get(Timeline, activity.timeline_id)
+
+        enriched_recent_activities.append({
+            "id": activity.id,
+            "study_name_short": study.name_short if study else "Unknown",
+            "participant_id": activity.participant_id,
+            "participant_name": participant.id if participant else "Unknown",
+            "day_label": day_label.name if day_label else "Unknown",
+            "timeline": timeline.name if timeline else "Unknown",
+            "activity_name": activity.activity_name,
+            "time_range": f"{activity.start_minutes//60:02d}:{activity.start_minutes%60:02d} - {activity.end_minutes//60:02d}:{activity.end_minutes%60:02d}",
+            "created_at": activity.created_at
+        })
+
+    # Render the template - pass the actual request object, not the class
+    return templates.TemplateResponse(
+        "admin_overview.html",
+        {
+            "request": request,  # This should be the request parameter, not Request class
+            "current_admin": current_admin,
+            "studies_data": studies_data,
+            "total_studies": total_studies,
+            "total_participants": total_participants,
+            "total_activities_all": total_activities_all,
+            "recent_activities": enriched_recent_activities,
+            "current_time": datetime.utcnow()
+        }
+    )

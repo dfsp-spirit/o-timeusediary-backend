@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUD Admin Overview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .study-section {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .study-header {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .study-header h2 {
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+
+        .study-meta {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .tab {
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #6c757d;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            background: white;
+        }
+
+        .tab-content {
+            padding: 1.5rem;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .timeline-card {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: #f8f9fa;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 4px;
+            margin-right: 0.5rem;
+        }
+
+        .badge-study {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .badge-timeline {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .badge-participant {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .badge-activity {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .activity-path {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #666;
+            background: #f8f9fa;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.25rem;
+        }
+
+        .time-cell {
+            font-family: 'Courier New', monospace;
+            font-weight: 500;
+        }
+
+        .participant-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .participant-card {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+            border-left: 4px solid #4caf50;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            justify-content: center;
+        }
+
+        .page-btn {
+            padding: 0.5rem 1rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .page-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #dee2e6;
+        }
+
+        @media (max-width: 768px) {
+            .header-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .study-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab {
+                flex: 1;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>TUD Admin Overview</h1>
+            <p>Time Use Diary Database Administration Interface</p>
+            <div class="header-info">
+                <div>
+                    <strong>Admin:</strong> {{ current_admin }}
+                </div>
+                <div>
+                    <strong>Last Updated:</strong> {{ current_time.strftime('%Y-%m-%d %H:%M:%S UTC') }}
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ total_studies }}</div>
+                <div class="stat-label">Studies</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ total_participants }}</div>
+                <div class="stat-label">Participants</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ total_activities_all }}</div>
+                <div class="stat-label">Activities</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ studies_data|length }}</div>
+                <div class="stat-label">Active Studies</div>
+            </div>
+        </div>
+
+        {% for study_data in studies_data %}
+        <div class="study-section">
+            <div class="study-header">
+                <h2>{{ study_data.study.name }} <span class="badge badge-study">{{ study_data.study.name_short }}</span></h2>
+                <p>{{ study_data.study.description }}</p>
+                <div class="study-meta">
+                    <div><strong>ID:</strong> {{ study_data.study.id }}</div>
+                    <div><strong>Participants:</strong> {{ study_data.participant_count }}</div>
+                    <div><strong>Activities:</strong> {{ study_data.total_activities }}</div>
+                    <div><strong>Created:</strong> {{ study_data.study.created_at.strftime('%Y-%m-%d') }}</div>
+                </div>
+                <div class="study-meta">
+                    <div><strong>Data Collection:</strong> {{ study_data.study.data_collection_start.strftime('%Y-%m-%d') }} to {{ study_data.study.data_collection_end.strftime('%Y-%m-%d') }}</div>
+                    <div><strong>Unlisted Participants:</strong> {{ "Allowed" if study_data.study.allow_unlisted_participants else "Restricted" }}</div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('timelines-{{ study_data.study.id }}', this)">Timelines</button>
+                <button class="tab" onclick="switchTab('participants-{{ study_data.study.id }}', this)">Participants ({{ study_data.participant_count }})</button>
+                <button class="tab" onclick="switchTab('activities-{{ study_data.study.id }}', this)">Activities ({{ study_data.total_activities }})</button>
+                <button class="tab" onclick="switchTab('daylabels-{{ study_data.study.id }}', this)">Day Labels</button>
+            </div>
+
+            <div class="tab-content">
+                <!-- Timelines Tab -->
+                <div id="timelines-{{ study_data.study.id }}" class="tab-panel active">
+                    <div class="timeline-grid">
+                        {% for timeline_stat in study_data.timeline_stats %}
+                        <div class="timeline-card">
+                            <h3>{{ timeline_stat.display_name }} <span class="badge badge-timeline">{{ timeline_stat.name }}</span></h3>
+                            <p><strong>Mode:</strong> {{ timeline_stat.mode }}</p>
+                            <p><strong>Activities:</strong> {{ timeline_stat.activity_count }}</p>
+                            {% if timeline_stat.min_coverage %}
+                            <p><strong>Min Coverage:</strong> {{ timeline_stat.min_coverage }}%</p>
+                            {% endif %}
+                            {% if timeline_stat.description %}
+                            <p><strong>Description:</strong> {{ timeline_stat.description }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Participants Tab -->
+                <div id="participants-{{ study_data.study.id }}" class="tab-panel">
+                    {% if study_data.participants %}
+                    <div class="participant-list">
+                        {% for participant in study_data.participants %}
+                        <div class="participant-card">
+                            <h3>{{ participant.id }} <span class="badge badge-participant">{{ participant.activity_count }} activities</span></h3>
+                            <p><strong>Joined Study:</strong> {{ participant.joined_study_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            <p><strong>Created:</strong> {{ participant.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <p>No participants yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Activities Tab -->
+                <div id="activities-{{ study_data.study.id }}" class="tab-panel">
+                    {% if study_data.activities_preview %}
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Participant</th>
+                                    <th>Day</th>
+                                    <th>Timeline</th>
+                                    <th>Activity</th>
+                                    <th>Time</th>
+                                    <th>Duration</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in study_data.activities_preview %}
+                                <tr>
+                                    <td>{{ activity.id }}</td>
+                                    <td>{{ activity.participant_name }}</td>
+                                    <td>{{ activity.day_label }}</td>
+                                    <td>{{ activity.timeline_display_name }}<br><small>{{ activity.timeline }}</small></td>
+                                    <td>
+                                        <strong>{{ activity.activity_name }}</strong><br>
+                                        <small>Code: {{ activity.activity_code }}</small>
+                                        {% if activity.parent_activity_code %}
+                                        <br><small>Parent: {{ activity.parent_activity_code }}</small>
+                                        {% endif %}
+                                        <div class="activity-path">{{ activity.activity_path_frontend }}</div>
+                                    </td>
+                                    <td class="time-cell">{{ activity.time_range }}</td>
+                                    <td>{{ activity.duration }} min</td>
+                                    <td>{{ activity.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <span>Showing first 10 of {{ study_data.total_activities }} activities</span>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <p>No activities recorded yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Day Labels Tab -->
+                <div id="daylabels-{{ study_data.study.id }}" class="tab-panel">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Display Order</th>
+                                    <th>Activity Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for day_label in study_data.day_labels %}
+                                {% set day_activity_count = namespace(value=0) %}
+                                {% for activity in study_data.activities_preview %}
+                                    {% if activity.day_label == day_label.name %}
+                                        {% set day_activity_count.value = day_activity_count.value + 1 %}
+                                    {% endif %}
+                                {% endfor %}
+                                <tr>
+                                    <td>{{ day_label.name }}</td>
+                                    <td>{{ day_label.display_order }}</td>
+                                    <td>{{ day_activity_count.value }} (sample)</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Recent Activities Section -->
+        <div class="study-section">
+            <div class="study-header">
+                <h2>📊 Recent Activities (All Studies)</h2>
+                <p>Last 10 activities recorded across all studies</p>
+            </div>
+            <div class="tab-content">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Study</th>
+                                <th>Participant</th>
+                                <th>Day</th>
+                                <th>Timeline</th>
+                                <th>Activity</th>
+                                <th>Time</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in recent_activities %}
+                            <tr>
+                                <td>{{ activity.id }}</td>
+                                <td>{{ activity.study_name_short }}</td>
+                                <td>{{ activity.participant_name }}</td>
+                                <td>{{ activity.day_label }}</td>
+                                <td>{{ activity.timeline }}</td>
+                                <td>{{ activity.activity_name }}</td>
+                                <td class="time-cell">{{ activity.time_range }}</td>
+                                <td>{{ activity.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabId, button) {
+            // Get all tabs and panels in the same study section
+            const studySection = button.closest('.study-section');
+
+            // Deactivate all tabs in this section
+            studySection.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Hide all panels in this section
+            studySection.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+
+            // Activate clicked tab and show corresponding panel
+            button.classList.add('active');
+            const activePanel = studySection.querySelector(`#${tabId}`);
+            if (activePanel) {
+                activePanel.classList.add('active');
+            }
+        }
+
+        // Auto-refresh page every 5 minutes
+        setTimeout(() => {
+            window.location.reload();
+        }, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
