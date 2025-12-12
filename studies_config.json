@@ -3,8 +3,8 @@
     {
       "name": "Default Study",
       "name_short": "default",
-      "description": "Default study for time use research for one day",
-      "day_labels": ["default"],
+      "description": "Default open study for time use research for two days",
+      "day_labels": ["default", "day2"],
       "study_participant_ids": [],
       "allow_unlisted_participants": true,
       "activities_json_file": "activities_default.json",
@@ -14,7 +14,7 @@
     {
       "name": "Weekly Study",
       "name_short": "weekly",
-      "description": "Study covering a full week",
+      "description": "Closed study covering a full week",
       "day_labels": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
       "study_participant_ids": ["bernddasbrot", "annasmith", "john_doe"],
       "allow_unlisted_participants": false,

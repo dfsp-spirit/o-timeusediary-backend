@@ -34,7 +34,7 @@ from .api_deps.activities import (
     get_study_activity_codes
 )
 from fastapi.responses import HTMLResponse
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import func
 import csv
 import json
@@ -329,6 +329,7 @@ def compute_activity_path(activity_item: ActivitySubmitItem) -> str:
     return " > ".join(parts)
 
 
+
 @app.post("/api/studies/{study_name_short}/participants/{participant_id}/day_labels/{day_label_name}/activities")
 def submit_activities(
     study_name_short: str,
@@ -341,6 +342,7 @@ def submit_activities(
     Submit activities for a specific day label in a study.
     Handles both single-choice and multiple-choice timelines.
     Rejects entire submission if any activity code is invalid (frontend-backend config mismatch).
+    If activities already exist for this user-study-day_label combination, they are deleted first.
     """
     # Validate study exists
     study = session.exec(
@@ -349,20 +351,35 @@ def submit_activities(
     if not study:
         raise HTTPException(status_code=404, detail=f"Study '{study_name_short}' not found")
 
-    #now = utc_now()
-    #if now < study.data_collection_start:
-    #    raise HTTPException(
-    #        status_code=403,
-    #        detail=f"Study '{study.name_short}' has not started yet. "
-    #                f"Data collection starts on {study.data_collection_start.isoformat()}."
-    #    )
 
-    #if now > study.data_collection_end:
-    #    raise HTTPException(
-    #        status_code=403,
-    #        detail=f"Study '{study.name_short}' has ended. "
-    #                f"Data collection ended on {study.data_collection_end.isoformat()}."
-    #    )
+    now = utc_now()
+
+    # Make data_collection_start timezone aware
+    if study.data_collection_start.tzinfo is None:
+        data_collection_start = study.data_collection_start.replace(tzinfo=timezone.utc)
+    else:
+        data_collection_start = study.data_collection_start
+
+    # Make data_collection_end timezone aware
+    if study.data_collection_end.tzinfo is None:
+        data_collection_end = study.data_collection_end.replace(tzinfo=timezone.utc)
+    else:
+        data_collection_end = study.data_collection_end
+
+
+    if now < data_collection_start:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Study '{study.name_short}' has not started yet. "
+                    f"Data collection starts on {data_collection_start.isoformat()}."
+        )
+
+    if now > data_collection_end:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Study '{study.name_short}' has ended. "
+                    f"Data collection ended on {data_collection_end.isoformat()}."
+        )
 
     # Get all valid activity codes for this study
     try:
@@ -511,7 +528,30 @@ def submit_activities(
             }
         )
 
-    # PHASE 2: Create all activities (all codes are valid)
+    # PHASE 2: Check if activities already exist for this user-study-day_label
+    existing_activities = session.exec(
+        select(Activity).where(
+            Activity.study_id == study.id,
+            Activity.participant_id == participant_id,
+            Activity.day_label_id == day_label.id
+        )
+    ).all()
+
+    existing_count = len(existing_activities)
+    operation = "updated" if existing_count > 0 else "created"
+
+    # Delete existing activities if any (this implements the "edit/replace" logic)
+    if existing_count > 0:
+        logger.info(f"Deleting {existing_count} existing activities for participant '{participant_id}', "
+                   f"study '{study_name_short}', day label '{day_label_name}' before inserting new ones")
+
+        for activity in existing_activities:
+            session.delete(activity)
+
+        # Flush to execute deletes before inserts
+        session.flush()
+
+    # PHASE 3: Create all new activities (all codes are valid)
     for activity_item in activities_data.activities:
         timeline = timeline_map[activity_item.timeline_key]
 
@@ -546,7 +586,7 @@ def submit_activities(
                 session.add(activity)
                 created_activities.append(activity)
 
-    # Commit all activities
+    # Commit all changes (deletes and inserts)
     session.commit()
 
     # Refresh to get IDs
@@ -554,15 +594,16 @@ def submit_activities(
         session.refresh(activity)
 
     return {
-        "message": f"Successfully submitted {len(created_activities)} activities",
+        "message": f"Successfully {operation} {len(created_activities)} activities",
         "study": study_name_short,
         "participant": participant_id,
         "day_label": day_label_name,
         "activity_count": len(created_activities),
+        "previous_activities_deleted": existing_count,
+        "operation": operation,
         "validation": "All activity codes validated against study configuration",
         "config_source": study.activities_json_url
     }
-
 
 
 @app.get("/admin", response_class=HTMLResponse)
@@ -938,3 +979,108 @@ def export_json(data: list, filename: str) -> Response:
     response.headers["Content-Type"] = "application/json; charset=utf-8"
 
     return response
+
+
+@app.get("/api/studies/{study_name_short}/participants/{participant_id}/day_labels/{day_label_name}/activities")
+def get_participant_day_activities(
+    study_name_short: str,
+    participant_id: str,
+    day_label_name: str,
+    session: Session = Depends(get_session)
+):
+    """
+    Get all activities for a specific participant and day label in a study.
+    This endpoint is for participants to retrieve their own data for editing.
+    Returns activities across all timelines for the specified day.
+    """
+    # Validate study exists
+    study = session.exec(
+        select(Study).where(Study.name_short == study_name_short)
+    ).first()
+    if not study:
+        raise HTTPException(status_code=404, detail=f"Study '{study_name_short}' not found")
+
+    # Check if participant is authorized for this study
+    if not study.allow_unlisted_participants:
+        # Study restricts participants - check if they're in the allowed list
+        study_participant = session.exec(
+            select(StudyParticipant).where(
+                StudyParticipant.study_id == study.id,
+                StudyParticipant.participant_id == participant_id
+            )
+        ).first()
+        if not study_participant:
+            logger.info(f"Unauthorized participant '{participant_id}' attempted to access data from study '{study_name_short}'")
+            raise HTTPException(
+                status_code=403,
+                detail=f"Participant '{participant_id}' not authorized for this study"
+            )
+    else:
+        # Study allows unlisted participants - ensure participant exists
+        participant = session.exec(
+            select(Participant).where(Participant.id == participant_id)
+        ).first()
+        if not participant:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Participant '{participant_id}' does not exist for this study"
+            )
+
+    # Validate day label exists for this study
+    day_label = session.exec(
+        select(DayLabel).where(
+            DayLabel.study_id == study.id,
+            DayLabel.name == day_label_name
+        )
+    ).first()
+    if not day_label:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Day label '{day_label_name}' not found for study '{study_name_short}'"
+        )
+
+    # Get all activities for this participant and day label
+    activities = session.exec(
+        select(Activity, Timeline)
+        .join(Timeline, Activity.timeline_id == Timeline.id)
+        .where(
+            Activity.study_id == study.id,
+            Activity.participant_id == participant_id,
+            Activity.day_label_id == day_label.id
+        )
+        .order_by(Activity.start_minutes, Activity.timeline_id)
+    ).all()
+
+    # Structure the response in a frontend-friendly format
+    response_activities = []
+    for activity, timeline in activities:
+
+        response_activities.append({
+            # Activity data
+            "timeline_key": timeline.name,
+            "timeline_display_name": timeline.display_name,
+            "timeline_mode": timeline.mode,
+            "activity": activity.activity_name,
+            "activity_code": activity.activity_code,
+            "parent_activity_code": activity.parent_activity_code,
+            "activity_path_frontend": activity.activity_path_frontend,
+            "start_minutes": activity.start_minutes,
+            "end_minutes": activity.end_minutes,
+            "duration": activity.end_minutes - activity.start_minutes,
+
+
+            # Metadata
+            "created_at": activity.created_at.isoformat(),
+            "activity_id": activity.id
+        })
+
+    return {
+        "study": study_name_short,
+        "participant": participant_id,
+        "day_label": day_label_name,
+        "day_label_id": day_label.id,
+        "total_activities": len(response_activities),
+        "activities": response_activities
+    }
+
+
