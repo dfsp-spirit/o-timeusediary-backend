@@ -981,7 +981,7 @@ def export_json(data: list, filename: str) -> Response:
     return response
 
 
-@app.get("/api/studies/{study_name_short}/participants/{participant_id}/day_labels/{day_label_name}/activities")
+@app.get("/api/studies/{study_name_short}/participants/{participant_id}/day_label/{day_label_name}/activities")
 def get_participant_day_activities(
     study_name_short: str,
     participant_id: str,
@@ -1079,6 +1079,111 @@ def get_participant_day_activities(
         "participant": participant_id,
         "day_label": day_label_name,
         "day_label_id": day_label.id,
+        "day_label_index": day_label.display_order,
+        "total_activities": len(response_activities),
+        "activities": response_activities
+    }
+
+
+
+@app.get("/api/studies/{study_name_short}/participants/{participant_id}/day_label_index/{day_label_index}/activities")
+def get_participant_day_activities_by_index(
+    study_name_short: str,
+    participant_id: str,
+    day_label_index: int,
+    session: Session = Depends(get_session)
+):
+    """
+    Get all activities for a specific participant and day label index in a study.
+    This endpoint is for participants to retrieve their own data for editing.
+    Returns activities across all timelines for the specified day by display order.
+    """
+    # Validate study exists
+    study = session.exec(
+        select(Study).where(Study.name_short == study_name_short)
+    ).first()
+    if not study:
+        raise HTTPException(status_code=404, detail=f"Study '{study_name_short}' not found")
+
+    # Check if participant is authorized for this study
+    if not study.allow_unlisted_participants:
+        # Study restricts participants - check if they're in the allowed list
+        study_participant = session.exec(
+            select(StudyParticipant).where(
+                StudyParticipant.study_id == study.id,
+                StudyParticipant.participant_id == participant_id
+            )
+        ).first()
+        if not study_participant:
+            logger.info(f"Unauthorized participant '{participant_id}' attempted to access data from study '{study_name_short}'")
+            raise HTTPException(
+                status_code=403,
+                detail=f"Participant '{participant_id}' not authorized for this study"
+            )
+    else:
+        # Study allows unlisted participants - ensure participant exists
+        participant = session.exec(
+            select(Participant).where(Participant.id == participant_id)
+        ).first()
+        if not participant:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Participant '{participant_id}' does not exist for this study"
+            )
+
+    # Validate day label exists for this study by display_order (index)
+    day_label = session.exec(
+        select(DayLabel).where(
+            DayLabel.study_id == study.id,
+            DayLabel.display_order == day_label_index
+        )
+    ).first()
+    if not day_label:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Day label with index '{day_label_index}' not found for study '{study_name_short}'"
+        )
+
+    # Get all activities for this participant and day label
+    activities = session.exec(
+        select(Activity, Timeline)
+        .join(Timeline, Activity.timeline_id == Timeline.id)
+        .where(
+            Activity.study_id == study.id,
+            Activity.participant_id == participant_id,
+            Activity.day_label_id == day_label.id
+        )
+        .order_by(Activity.start_minutes, Activity.timeline_id)
+    ).all()
+
+    # Structure the response in a frontend-friendly format
+    response_activities = []
+    for activity, timeline in activities:
+
+        response_activities.append({
+            # Activity data
+            "timeline_key": timeline.name,
+            "timeline_display_name": timeline.display_name,
+            "timeline_mode": timeline.mode,
+            "activity": activity.activity_name,
+            "activity_code": activity.activity_code,
+            "parent_activity_code": activity.parent_activity_code,
+            "activity_path_frontend": activity.activity_path_frontend,
+            "start_minutes": activity.start_minutes,
+            "end_minutes": activity.end_minutes,
+            "duration": activity.end_minutes - activity.start_minutes,
+
+            # Metadata
+            "created_at": activity.created_at.isoformat(),
+            "activity_id": activity.id
+        })
+
+    return {
+        "study": study_name_short,
+        "participant": participant_id,
+        "day_label": day_label.name,  # Include the actual day label name
+        "day_label_id": day_label.id,
+        "day_label_index": day_label.display_order,
         "total_activities": len(response_activities),
         "activities": response_activities
     }
