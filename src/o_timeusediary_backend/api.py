@@ -1086,6 +1086,7 @@ def get_participant_day_activities(
         "day_label_id": day_label.id,
         "day_label_index": day_label.display_order,
         "total_activities": len(response_activities),
+        "total_timelines": len(set([a['timeline_key'] for a in response_activities])),
         "activities": response_activities
     }
 
@@ -1108,6 +1109,7 @@ def get_participant_day_activities_by_index(
         select(Study).where(Study.name_short == study_name_short)
     ).first()
     if not study:
+        logger.info(f"Study '{study_name_short}' not found when participant '{participant_id}' attempted to access day label index '{day_label_index}'")
         raise HTTPException(status_code=404, detail=f"Study '{study_name_short}' not found")
 
     # Check if participant is authorized for this study
@@ -1131,6 +1133,7 @@ def get_participant_day_activities_by_index(
             select(Participant).where(Participant.id == participant_id)
         ).first()
         if not participant:
+            logger.info(f"Participant '{participant_id}' does not exist when attempting to access his/her activities for study '{study_name_short}'")
             raise HTTPException(
                 status_code=403,
                 detail=f"Participant '{participant_id}' does not exist for this study"
@@ -1144,6 +1147,7 @@ def get_participant_day_activities_by_index(
         )
     ).first()
     if not day_label:
+        logger.info(f"Day label with index '{day_label_index}' not found for study '{study_name_short}' when participant '{participant_id}' attempted to access it")
         raise HTTPException(
             status_code=404,
             detail=f"Day label with index '{day_label_index}' not found for study '{study_name_short}'"
@@ -1190,6 +1194,7 @@ def get_participant_day_activities_by_index(
         "day_label_id": day_label.id,
         "day_label_index": day_label.display_order,
         "total_activities": len(response_activities),
+        "total_timelines": len(set([a['timeline_key'] for a in response_activities])),
         "activities": response_activities
     }
 
