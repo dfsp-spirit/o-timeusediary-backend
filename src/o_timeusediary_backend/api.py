@@ -289,7 +289,7 @@ def get_study_activities_config(
             detail=f"Error loading activities configuration: {str(e)}"
         )
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from typing import List, Optional, Union
 
 class ActivitySubmitItem(BaseModel):
@@ -304,6 +304,25 @@ class ActivitySubmitItem(BaseModel):
     start_minutes: int
     end_minutes: int
     mode: str  # "single-choice" or "multiple-choice"
+
+    @model_validator(mode='after')
+    def validate_code_or_codes(self):
+        code_provided = self.code is not None
+        codes_provided = self.codes is not None and len(self.codes) > 0
+
+        if code_provided and codes_provided:
+            raise ValueError('Only one of "code" or "codes" should be provided')
+        if not code_provided and not codes_provided:
+            raise ValueError('Either "code" or "codes" must be provided')
+
+        # Additional validation based on mode
+        if self.mode == "single-choice" and not code_provided:
+            raise ValueError('"code" must be provided for single-choice mode')
+        if self.mode == "multiple-choice" and not codes_provided:
+            raise ValueError('"codes" must be provided for multiple-choice mode')
+
+        return self
+
 
 class ActivitiesSubmitRequest(BaseModel):
     activities: List[ActivitySubmitItem]
