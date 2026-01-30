@@ -258,7 +258,7 @@
               {
                 "name": "Sports / Exercise at Home (please specify)",
                 "code": 1144,
-                "label": "playing sports, exercise",
+                "label": "sports, exercise",
                 "short": "exercise",
                 "vshort": "ex",
                 "color": "#BA55D3",
@@ -272,24 +272,6 @@
                 "short": "cooking",
                 "vshort": "cook",
                 "color": "#8A2BE2",
-                "childItems": []
-              },
-              {
-                "name": "Playing (indoor)",
-                "code": 1148,
-                "label": "playing indoor",
-                "short": "play indoor",
-                "vshort": "play",
-                "color": "#8A2BE6",
-                "childItems": []
-              },
-              {
-                "name": "Playing (outdoor)",
-                "code": 1149,
-                "label": "playing outdoor",
-                "short": "play outdoor",
-                "vshort": "play",
-                "color": "#8A2BE6",
                 "childItems": []
               },
               {
@@ -410,30 +392,12 @@
                 "name": "Sports / Exercise indoors (please specify)",
                 "examples": "Gym, swimming, fitness classes, indoor climbing, etc",
                 "code": 1172,
-                "label": "playing sports, exercise indoors",
+                "label": "sports, exercise indoors",
                 "short": "exercise",
                 "vshort": "ex",
                 "color": "#8A2BE2",
                 "childItems": [],
                 "is_custom_input": true
-              },
-              {
-                "name": "Playing (indoor)",
-                "code": 1174,
-                "label": "playing indoor",
-                "short": "play indoor",
-                "vshort": "play",
-                "color": "#8A2BE6",
-                "childItems": []
-              },
-              {
-                "name": "Playing (outdoor)",
-                "code": 1175,
-                "label": "playing outdoor",
-                "short": "play outdoor",
-                "vshort": "play",
-                "color": "#8A2BE6",
-                "childItems": []
               },
               {
                 "name": "Other out of home activities (please specify)",
