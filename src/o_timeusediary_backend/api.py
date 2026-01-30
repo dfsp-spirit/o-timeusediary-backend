@@ -1048,18 +1048,35 @@ def export_json(data: list, filename: str) -> Response:
     return response
 
 
-@app.get("/api/studies/{study_name_short}/participants/{participant_id}/day_label/{day_label_name}/activities")
+
+@app.get("/api/studies/{study_name_short}/participants/{participant_id}/activities")
 def get_participant_day_activities(
     study_name_short: str,
     participant_id: str,
-    day_label_name: str,
+    day_label_name: Optional[str] = Query(None, description="Day label name (e.g., 'monday'). Either this or day_label_index must be provided"),
+    day_label_index: Optional[int] = Query(None, description="Day label display order/index. Either this or day_label_name must be provided"),
+    template_from_day_index: Optional[int] = Query(None, description="Optional: Day index to use as template source. Defaults to previous day (current_day_index - 1)"),
     session: Session = Depends(get_session)
 ):
     """
-    Get all activities for a specific participant and day label in a study.
+    Get all activities for a specific participant and day in a study.
     This endpoint is for participants to retrieve their own data for editing.
     Returns activities across all timelines for the specified day.
+
+    Either day_label_name or day_label_index must be provided to identify the target day.
+
+    Optionally include activities from a previous day as a template:
+    - If template_from_day_index is not provided, defaults to previous day (current_day_index - 1)
+    - If template_from_day_index is provided, uses that specific day as template source
+    - Returns empty template if specified source day doesn't exist or has no activities
     """
+    # Validate that at least one identifier is provided
+    if day_label_name is None and day_label_index is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Either day_label_name or day_label_index must be provided"
+        )
+
     # Validate study exists
     study = session.exec(
         select(Study).where(Study.name_short == study_name_short)
@@ -1093,129 +1110,34 @@ def get_participant_day_activities(
                 detail=f"Participant '{participant_id}' does not exist for this study"
             )
 
-    # Validate day label exists for this study
-    day_label = session.exec(
-        select(DayLabel).where(
-            DayLabel.study_id == study.id,
-            DayLabel.name == day_label_name
-        )
-    ).first()
-    if not day_label:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Day label '{day_label_name}' not found for study '{study_name_short}'"
-        )
-
-    # Get all activities for this participant and day label
-    activities = session.exec(
-        select(Activity, Timeline)
-        .join(Timeline, Activity.timeline_id == Timeline.id)
-        .where(
-            Activity.study_id == study.id,
-            Activity.participant_id == participant_id,
-            Activity.day_label_id == day_label.id
-        )
-        .order_by(Activity.start_minutes, Activity.timeline_id)
-    ).all()
-
-    # Structure the response in a frontend-friendly format
-    response_activities = []
-    for activity, timeline in activities:
-
-        response_activities.append({
-            # Activity data
-            "timeline_key": timeline.name,
-            "timeline_display_name": timeline.display_name,
-            "timeline_mode": timeline.mode,
-            "activity": activity.activity_name,
-            "activity_code": activity.activity_code,
-            "parent_activity_code": activity.parent_activity_code,
-            "activity_path_frontend": activity.activity_path_frontend,
-            "start_minutes": activity.start_minutes,
-            "end_minutes": activity.end_minutes,
-            "duration": activity.end_minutes - activity.start_minutes,
-
-
-            # Metadata
-            "created_at": activity.created_at.isoformat(),
-            "activity_id_backend": activity.id
-        })
-
-    print(f"Returning activities (by day name) for participant '{participant_id}', study '{study_name_short}', day label name '{day_label_name}':", response_activities)
-
-    return {
-        "study": study_name_short,
-        "participant": participant_id,
-        "day_label": day_label_name,
-        "day_label_id": day_label.id,
-        "day_label_index": day_label.display_order,
-        "total_activities": len(response_activities),
-        "total_timelines": len(set([a['timeline_key'] for a in response_activities])),
-        "activities": response_activities
-    }
-
-
-
-@app.get("/api/studies/{study_name_short}/participants/{participant_id}/day_label_index/{day_label_index}/activities")
-def get_participant_day_activities_by_index(
-    study_name_short: str,
-    participant_id: str,
-    day_label_index: int,
-    session: Session = Depends(get_session)
-):
-    """
-    Get all activities for a specific participant and day label index in a study.
-    This endpoint is for participants to retrieve their own data for editing.
-    Returns activities across all timelines for the specified day by display order.
-    """
-    # Validate study exists
-    study = session.exec(
-        select(Study).where(Study.name_short == study_name_short)
-    ).first()
-    if not study:
-        logger.info(f"Study '{study_name_short}' not found when participant '{participant_id}' attempted to access day label index '{day_label_index}'")
-        raise HTTPException(status_code=404, detail=f"Study '{study_name_short}' not found")
-
-    # Check if participant is authorized for this study
-    if not study.allow_unlisted_participants:
-        # Study restricts participants - check if they're in the allowed list
-        study_participant = session.exec(
-            select(StudyParticipant).where(
-                StudyParticipant.study_id == study.id,
-                StudyParticipant.participant_id == participant_id
+    # Find the target day label
+    day_label = None
+    if day_label_name is not None:
+        # Find by name
+        day_label = session.exec(
+            select(DayLabel).where(
+                DayLabel.study_id == study.id,
+                DayLabel.name == day_label_name
             )
         ).first()
-        if not study_participant:
-            logger.info(f"Unauthorized participant '{participant_id}' attempted to access data from study '{study_name_short}'")
+        if not day_label:
             raise HTTPException(
-                status_code=403,
-                detail=f"Participant '{participant_id}' not authorized for this study"
+                status_code=404,
+                detail=f"Day label '{day_label_name}' not found for study '{study_name_short}'"
             )
     else:
-        # Study allows unlisted participants - ensure participant exists
-        participant = session.exec(
-            select(Participant).where(Participant.id == participant_id)
-        ).first()
-        if not participant:
-            logger.info(f"Participant '{participant_id}' does not exist when attempting to access his/her activities for study '{study_name_short}'")
-            raise HTTPException(
-                status_code=403,
-                detail=f"Participant '{participant_id}' does not exist for this study"
+        # Find by index
+        day_label = session.exec(
+            select(DayLabel).where(
+                DayLabel.study_id == study.id,
+                DayLabel.display_order == day_label_index
             )
-
-    # Validate day label exists for this study by display_order (index)
-    day_label = session.exec(
-        select(DayLabel).where(
-            DayLabel.study_id == study.id,
-            DayLabel.display_order == day_label_index
-        )
-    ).first()
-    if not day_label:
-        logger.info(f"Day label with index '{day_label_index}' not found for study '{study_name_short}' when participant '{participant_id}' attempted to access it")
-        raise HTTPException(
-            status_code=404,
-            detail=f"Day label with index '{day_label_index}' not found for study '{study_name_short}'"
-        )
+        ).first()
+        if not day_label:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Day label with index '{day_label_index}' not found for study '{study_name_short}'"
+            )
 
     # Get all activities for this participant and day label
     activities = session.exec(
@@ -1232,7 +1154,6 @@ def get_participant_day_activities_by_index(
     # Structure the response in a frontend-friendly format
     response_activities = []
     for activity, timeline in activities:
-
         response_activities.append({
             # Activity data
             "timeline_key": timeline.name,
@@ -1251,17 +1172,89 @@ def get_participant_day_activities_by_index(
             "activity_id_backend": activity.id
         })
 
-    print(f"Returning activities (by day index) for participant '{participant_id}', study '{study_name_short}', day label index '{day_label_index}':", response_activities)
+    # ========== Get template activities ==========
+    template_activities = []
+    has_template = False
+    template_source_day_label = None
+    template_source_day_index = None
+
+    # Determine which day to use as template source
+    target_template_index = None
+    if template_from_day_index is not None:
+        # Use explicitly specified day index
+        target_template_index = template_from_day_index
+    else:
+        # Default to previous day
+        target_template_index = day_label.display_order - 1
+
+    # Check if template source day exists
+    if target_template_index >= 0:  # Only look for template if index is valid (>= 0)
+        template_source_day_label = session.exec(
+            select(DayLabel).where(
+                DayLabel.study_id == study.id,
+                DayLabel.display_order == target_template_index
+            )
+        ).first()
+
+        if template_source_day_label:
+            # Get activities for the template source day for this participant
+            template_source_activities = session.exec(
+                select(Activity, Timeline)
+                .join(Timeline, Activity.timeline_id == Timeline.id)
+                .where(
+                    Activity.study_id == study.id,
+                    Activity.participant_id == participant_id,
+                    Activity.day_label_id == template_source_day_label.id
+                )
+                .order_by(Activity.start_minutes, Activity.timeline_id)
+            ).all()
+
+            if template_source_activities:
+                has_template = True
+                template_source_day_index = template_source_day_label.display_order
+
+                for activity, timeline in template_source_activities:
+                    template_activities.append({
+                        # Activity data
+                        "timeline_key": timeline.name,
+                        "timeline_display_name": timeline.display_name,
+                        "timeline_mode": timeline.mode,
+                        "activity": activity.activity_name,
+                        "activity_code": activity.activity_code,
+                        "parent_activity_code": activity.parent_activity_code,
+                        "activity_path_frontend": activity.activity_path_frontend,
+                        "start_minutes": activity.start_minutes,
+                        "end_minutes": activity.end_minutes,
+                        "duration": activity.end_minutes - activity.start_minutes,
+
+                        # Metadata
+                        "created_at": activity.created_at.isoformat(),
+                        "activity_id_backend": activity.id,
+
+                        # Template source information
+                        "is_template_from_previous_day": True,
+                        "template_source_day_label": template_source_day_label.name,
+                        "template_source_day_index": template_source_day_label.display_order
+                    })
+
+    print(f"Returning activities for participant '{participant_id}', study '{study_name_short}', "
+          f"day label '{day_label.name}' (index: {day_label.display_order}): {len(response_activities)} activities, "
+          f"has_template: {has_template}")
 
     return {
         "study": study_name_short,
         "participant": participant_id,
-        "day_label": day_label.name,  # Include the actual day label name
+        "day_label": day_label.name,
         "day_label_id": day_label.id,
         "day_label_index": day_label.display_order,
         "total_activities": len(response_activities),
         "total_timelines": len(set([a['timeline_key'] for a in response_activities])),
-        "activities": response_activities
+        "activities": response_activities,
+        # Template information
+        "has_template": has_template,
+        "template_source_day_label": template_source_day_label.name if template_source_day_label else None,
+        "template_source_day_index": template_source_day_index,
+        "template_activities": template_activities if has_template else []
     }
 
 
