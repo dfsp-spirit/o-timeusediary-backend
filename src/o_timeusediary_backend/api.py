@@ -1241,8 +1241,15 @@ def get_participant_day_activities(
           f"day label '{day_label.name}' (index: {day_label.display_order}): {len(response_activities)} activities, "
           f"has_template: {has_template}")
 
+    # Determine meta-data on the study, including the number of days
+    study_days = session.exec(
+        select(DayLabel).where(DayLabel.study_id == study.id)
+    ).all()
+    study_days_count = len(study_days)
+
     return {
         "study": study_name_short,
+        "study_days_count": study_days_count,
         "participant": participant_id,
         "day_label": day_label.name,
         "day_label_id": day_label.id,
