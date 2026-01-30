@@ -259,7 +259,7 @@ def get_study_activities_config(
 ):
     """
     Get the activities configuration (activities.json) for a study.
-    This returns the exact configuration that was used when the study was created.
+    This returns the exact configuration that was used when the study was created, as it is in the file on the server.
 
     Access is restricted to:
     1. Study is open for everyone (allow_unlisted_participants=True), OR
