@@ -93,6 +93,7 @@ class Activity(SQLModel, table=True):
     end_minutes: int    # Minutes since midnight (0-1439)
     activity_name: str = Field(index=True)  # Name of the activity as per activities.json, or for a custom input the value the user entered
     activity_path_frontend: str
+    color: Optional[str] = None    # e.g., "#FF0000", used in frontend for display
 
     # Hierarchy information
     parent_activity_code: Optional[int] = Field(default=None, index=True)

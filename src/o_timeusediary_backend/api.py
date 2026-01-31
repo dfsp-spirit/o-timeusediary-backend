@@ -346,7 +346,8 @@ class ActivitySubmitItem(BaseModel):
     original_selection: Optional[str] = None  # only set if this is a custom text input, it then shows the prompt text like "Other sport, please specify".
     start_minutes: int
     end_minutes: int
-    mode: str  # "single-choice" or "multiple-choice"
+    mode: str  # "single-choice" or "multiple-choice",
+    color: Optional[str] = None  # e.g., "#FF0000", used in frontend for display
 
     @model_validator(mode='after')
     def validate_code_or_codes(self):
@@ -633,6 +634,7 @@ def submit_activities(
                 end_minutes=activity_item.end_minutes,
                 activity_name=activity_item.activity,
                 activity_path_frontend=compute_activity_path(activity_item),
+                color=activity_item.color,
             )
             session.add(activity)
             created_activities.append(activity)
@@ -1161,6 +1163,7 @@ def get_participant_day_activities(
             "timeline_mode": timeline.mode,
             "activity": activity.activity_name,
             "activity_code": activity.activity_code,
+            "color": activity.color,
             "parent_activity_code": activity.parent_activity_code,
             "activity_path_frontend": activity.activity_path_frontend,
             "start_minutes": activity.start_minutes,
@@ -1221,6 +1224,7 @@ def get_participant_day_activities(
                         "timeline_mode": timeline.mode,
                         "activity": activity.activity_name,
                         "activity_code": activity.activity_code,
+                        "color": activity.color,
                         "parent_activity_code": activity.parent_activity_code,
                         "activity_path_frontend": activity.activity_path_frontend,
                         "start_minutes": activity.start_minutes,
