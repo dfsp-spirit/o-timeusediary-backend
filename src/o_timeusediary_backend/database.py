@@ -91,6 +91,7 @@ def report_on_db_contents():
 def report_on_available_activities():
     pass
 
+
 def create_config_file_studies(config_path: str):
     """Create studies from configuration file"""
 
@@ -99,15 +100,16 @@ def create_config_file_studies(config_path: str):
 
     with Session(engine) as session:
         for study_config in studies_config.studies:
+            try:
+                # Check if study already exists
+                existing_study = session.exec(
+                    select(Study).where(Study.name_short == study_config.name_short)
+                ).first()
 
-            activities_config: ActivitiesConfig = load_activities_config(study_config.activities_json_file)
+                if existing_study:
+                    logger.info(f"Study already exists: '{study_config.name_short}' with long name: '{study_config.name}'")
+                    continue  # Skip to next study
 
-            # Check if study already exists
-            existing_study = session.exec(
-                select(Study).where(Study.name_short == study_config.name_short)
-            ).first()
-
-            if not existing_study:
                 # Create study
                 study = Study(
                     name=study_config.name,
@@ -119,7 +121,10 @@ def create_config_file_studies(config_path: str):
                     data_collection_end=study_config.data_collection_end
                 )
                 session.add(study)
-                session.flush()
+                session.commit()  # Commit immediately after each study
+
+                # Load activities config and create related entities
+                activities_config: ActivitiesConfig = load_activities_config(study_config.activities_json_file)
 
                 # Create day labels
                 for display_order, day_label_name in enumerate(study_config.day_labels):
@@ -130,7 +135,7 @@ def create_config_file_studies(config_path: str):
                     )
                     session.add(day_label)
 
-                # Create timelines from activities config
+                # Create timelines
                 for timeline_name, timeline_config in activities_config.timeline.items():
                     timeline = Timeline(
                         study_id=study.id,
@@ -142,10 +147,9 @@ def create_config_file_studies(config_path: str):
                     )
                     session.add(timeline)
 
-                # Create participants if specified and not allowing unlisted
+                # Create participants if specified
                 if not study_config.allow_unlisted_participants and study_config.study_participant_ids:
                     for participant_id in study_config.study_participant_ids:
-                        # Check if participant exists, create if not
                         existing_participant = session.exec(
                             select(Participant).where(Participant.id == participant_id)
                         ).first()
@@ -157,18 +161,22 @@ def create_config_file_studies(config_path: str):
                         else:
                             participant = existing_participant
 
-                        # Link participant to study
                         study_participant = StudyParticipant(
                             study_id=study.id,
                             participant_id=participant.id
                         )
                         session.add(study_participant)
 
-                logger.info(f"Created study: {study_config.name} with {len(study_config.day_labels)} day labels and {len(activities_config.timeline)} timelines")
-            else:
-                logger.info(f"Study already exists: '{study_config.name_short}' with long name: '{study_config.name}'")
+                session.commit()  # Commit all related entities
+                logger.info(f"Created study: {study_config.name}")
 
-        session.commit()
+            except Exception as e:
+                session.rollback()  # Rollback on error
+                if "duplicate key" in str(e) or "already exists" in str(e):
+                    logger.warning(f"Study '{study_config.name_short}' may already exist: {e}")
+                else:
+                    logger.error(f"Error creating study '{study_config.name_short}': {e}")
+                    raise
 
 def get_session() -> Generator[Session, None, None]:
     with Session(engine) as session:
