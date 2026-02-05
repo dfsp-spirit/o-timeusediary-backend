@@ -5,6 +5,14 @@ o-timeusediary MPIAE Changes
 Current WIP
 -----------
 
+
+Version 0.6.0 -- Save and send activity category field
+-------------------------------------------------------
+* NEW: Save category field for activities when frontend sends data
+* BRK: New category field for activity in database will require db migration or re-creation
+
+
+
 Version 0.5.1 -- Startup bug fix
 ---------------------------------
 * FIX: more robust creation of db tables during startup, required with multi-threaded WSGI server
