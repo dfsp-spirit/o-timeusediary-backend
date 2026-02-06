@@ -7,14 +7,15 @@ from pathlib import Path
 import re
 
 class CfgFileDayLabel(BaseModel):
-    entry_index: int
-    entry_name: str
+    name: str
+    display_order: int
+    display_name: str
 
 class CfgFileStudy(BaseModel):
     name: str
     name_short: str
     description: Optional[str] = None
-    day_labels: List[str]  # Simplified - will be converted to CfgFileDayLabel
+    day_labels: List[CfgFileDayLabel]
     study_participant_ids: List[str] = []
     allow_unlisted_participants: bool = True
     activities_json_file: str

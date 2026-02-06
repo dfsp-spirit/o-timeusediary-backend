@@ -44,6 +44,7 @@ class DayLabel(SQLModel, table=True):
     study_id: int = Field(foreign_key="studies.id")
     name: str = Field(index=True)  # e.g., "monday", "typical_weekend"
     display_order: int = Field(default=0)  # For ordering in UI
+    display_name: str = Field(index=True)  # e.g., "Monday", "Typical Weekend"
 
     # Relationships
     study: Study = Relationship(back_populates="day_labels")

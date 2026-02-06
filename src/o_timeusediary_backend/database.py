@@ -41,7 +41,7 @@ def report_on_db_contents():
             ).all()
             logger.info(f"  Day Labels ({len(day_labels)}):")
             for day_label in day_labels:
-                logger.info(f"    - {day_label.name} (order: {day_label.display_order})")
+                logger.info(f"    - {day_label.name} (order: {day_label.display_order}, display name: '{day_label.display_name}')")
 
             # Report timelines
             timelines = session.exec(
@@ -127,11 +127,12 @@ def create_config_file_studies(config_path: str):
                 activities_config: ActivitiesConfig = load_activities_config(study_config.activities_json_file)
 
                 # Create day labels
-                for display_order, day_label_name in enumerate(study_config.day_labels):
+                for _, day_label_inst in enumerate(study_config.day_labels):
                     day_label = DayLabel(
                         study_id=study.id,
-                        name=day_label_name,
-                        display_order=display_order
+                        name=day_label_inst.name,
+                        display_order=day_label_inst.display_order,
+                        display_name=day_label_inst.display_name
                     )
                     session.add(day_label)
 

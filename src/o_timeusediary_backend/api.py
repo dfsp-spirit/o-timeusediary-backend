@@ -765,11 +765,14 @@ async def admin_overview(
                 "participant_id": activity.participant_id,
                 "participant_name": participant.id if participant else "Unknown",
                 "day_label": day_label.name if day_label else "Unknown",
+                "day_display_order": day_label.display_order if day_label else 0,
+                "day_display_name": day_label.display_name if day_label else "Unknown",
                 "timeline": timeline.name if timeline else "Unknown",
                 "timeline_display_name": timeline.display_name if timeline else "Unknown",
                 "activity_code": activity.activity_code,
                 "activity_name": activity.activity_name,
                 "activity_path_frontend": activity.activity_path_frontend,
+                "category": activity.category,
                 "start_minutes": activity.start_minutes,
                 "end_minutes": activity.end_minutes,
                 "time_range": f"{activity.start_minutes//60:02d}:{activity.start_minutes%60:02d} - {activity.end_minutes//60:02d}:{activity.end_minutes%60:02d}",
@@ -846,6 +849,9 @@ async def admin_overview(
             "participant_id": activity.participant_id,
             "participant_name": participant.id if participant else "Unknown",
             "day_label": day_label.name if day_label else "Unknown",
+            "day_display_name": day_label.display_name if day_label else "Unknown",
+            "day_display_order": day_label.display_order if day_label else 0,
+            "category": activity.category if activity else "Unknown",
             "timeline": timeline.name if timeline else "Unknown",
             "activity_name": activity.activity_name,
             "time_range": f"{activity.start_minutes//60:02d}:{activity.start_minutes%60:02d} - {activity.end_minutes//60:02d}:{activity.end_minutes%60:02d}",
@@ -940,6 +946,7 @@ async def export_study_activities(
             "end_minutes": activity.end_minutes,
             "duration_minutes": duration_minutes,
             "duration_hours": round(duration_hours, 2),
+            "category": activity.category,
 
             # Context data
             "participant_id": participant.id,
@@ -1268,6 +1275,7 @@ def get_participant_day_activities(
         "day_label": day_label.name,
         "day_label_id": day_label.id,
         "day_label_index": day_label.display_order,
+        "day_display_name": day_label.display_name,
         "total_activities": len(response_activities),
         "total_timelines": len(set([a['timeline_key'] for a in response_activities])),
         "activities": response_activities,
@@ -1334,7 +1342,7 @@ async def get_active_open_study_names(
 
 
 
-# Add this Pydantic model near the other Pydantic models (e.g., after ActiveOpenStudyResponse)
+
 class TimelineConfigResponse(BaseModel):
     name: str  # timeline key like "primary", "digitalmediause", "device"
     display_name: str
@@ -1345,6 +1353,7 @@ class TimelineConfigResponse(BaseModel):
 class DayLabelConfigResponse(BaseModel):
     name: str  # e.g., "monday", "typical_weekend"
     display_order: int
+    display_name: Optional[str] = None
 
 class StudyConfigResponse(BaseModel):
     study_name: str
@@ -1450,7 +1459,8 @@ def get_study_config(
     day_label_responses = [
         DayLabelConfigResponse(
             name=day_label.name,
-            display_order=day_label.display_order
+            display_order=day_label.display_order,
+            display_name=day_label.display_name
         )
         for day_label in day_labels
     ]

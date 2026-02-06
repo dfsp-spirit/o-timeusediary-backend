@@ -4,7 +4,7 @@ o-timeusediary MPIAE Changes
 
 Current WIP
 -----------
-
+* NEW: support display_name property for days in cfg file, database and API
 
 Version 0.6.0 -- Save and send activity category field
 -------------------------------------------------------
