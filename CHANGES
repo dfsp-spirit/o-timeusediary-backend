@@ -7,8 +7,15 @@ Current WIP
 * NEW: support display_name property for days in cfg file, database and API
 
 
+Version 0.6.2 -- Fix Editing template activities
+-----------------------------------------------
+* FIX: do not use ID of source activity when sending template activity, compute startTime and endTime for backend activities properly in frontend. Fixes bug in frontend that one cannot change times of activities.
+* compute ISO format start_time and end_time in ISO time format like 08:30:00 from the minutes after midnight in backend and send with activites. a service for the frontend.
+* add lots of dev scripts to repo that make it easier to test under conditions closer to production (nginx with reverse proxy setup, fastapi rootpath)
+
+
 Version 0.6.1 -- Support display_name for days
------------
+------------------------------------------------
 * NEW: support display_name property for days in cfg file, database and API
 
 
