@@ -44,7 +44,7 @@ from pydantic import BaseModel, model_validator
 from typing import List, Optional, Union
 
 
-from .utils import utc_now
+from .utils import utc_now, get_time_for_minutes_from_midnight
 
 security = HTTPBasic()
 
@@ -1171,6 +1171,8 @@ def get_participant_day_activities(
     # Structure the response in a frontend-friendly format
     response_activities = []
     for activity, timeline in activities:
+        start_time : str = get_time_for_minutes_from_midnight(activity.start_minutes).isoformat() # something like "08:30:00"
+        end_time = get_time_for_minutes_from_midnight(activity.end_minutes).isoformat()
         response_activities.append({
             # Activity data
             "timeline_key": timeline.name,
@@ -1183,6 +1185,8 @@ def get_participant_day_activities(
             "activity_path_frontend": activity.activity_path_frontend,
             "start_minutes": activity.start_minutes,
             "end_minutes": activity.end_minutes,
+            "start_time": start_time,
+            "end_time": end_time,
             "duration": activity.end_minutes - activity.start_minutes,
             "category": activity.category,
 
@@ -1233,6 +1237,8 @@ def get_participant_day_activities(
                 template_source_day_index = template_source_day_label.display_order
 
                 for activity, timeline in template_source_activities:
+                    start_time : str = get_time_for_minutes_from_midnight(activity.start_minutes).isoformat() # something like "08:30:00"
+                    end_time = get_time_for_minutes_from_midnight(activity.end_minutes).isoformat()
                     template_activities.append({
                         # Activity data
                         "timeline_key": timeline.name,
@@ -1245,6 +1251,8 @@ def get_participant_day_activities(
                         "activity_path_frontend": activity.activity_path_frontend,
                         "start_minutes": activity.start_minutes,
                         "end_minutes": activity.end_minutes,
+                        "start_time": start_time,
+                        "end_time": end_time,
                         "duration": activity.end_minutes - activity.start_minutes,
                         "category": activity.category,
 
