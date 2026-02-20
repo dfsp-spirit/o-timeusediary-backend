@@ -1258,7 +1258,7 @@ def get_participant_day_activities(
 
                         # Metadata
                         "created_at": activity.created_at.isoformat(),
-                        "activity_id_backend": activity.id,
+                        "activity_id_backend": None,   # No ID yet, since this is just a template and not an actual saved activity for the current day.
 
                         # Template source information
                         "is_template_from_previous_day": True,
