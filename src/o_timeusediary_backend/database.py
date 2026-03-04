@@ -88,8 +88,13 @@ def report_on_db_contents():
             logger.info(f"  ... and {len(activities) - 10} more activities")
 
 
-def report_on_available_activities():
-    pass
+def get_timelines_for_study(study_id: int) -> list[Timeline]:
+    """Get timelines for a given study"""
+    with Session(engine) as session:
+        timelines = session.exec(
+            select(Timeline).where(Timeline.study_id == study_id)
+        ).all()
+        return timelines
 
 
 def create_config_file_studies(config_path: str):

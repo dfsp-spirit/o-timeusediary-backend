@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 from .settings import settings
 from .models import Activity, Study, Timeline, DayLabel, StudyParticipant, Participant
-from .database import get_session, create_db_and_tables
+from .database import get_session, create_db_and_tables, get_timelines_for_study
 from pathlib import Path
 from .api_deps.activities import (
     validate_activity_code_dependency,
@@ -1156,6 +1156,9 @@ def get_participant_day_activities(
                 detail=f"Day label with index '{day_label_index}' not found for study '{study_name_short}'"
             )
 
+    study_timelines : List[Timeline] = get_timelines_for_study(study.id)
+    study_timelines_names = [t.name for t in study_timelines]
+
     # Get all activities for this participant and day label
     activities = session.exec(
         select(Activity, Timeline)
@@ -1284,8 +1287,10 @@ def get_participant_day_activities(
         "day_label_id": day_label.id,
         "day_label_index": day_label.display_order,
         "day_display_name": day_label.display_name,
+        "timelines_in_study": study_timelines_names,
         "total_activities": len(response_activities),
-        "total_timelines": len(set([a['timeline_key'] for a in response_activities])),
+        "total_timelines": len(study_timelines_names),
+        "total_timelines_with_activities": len(set([a['timeline_key'] for a in response_activities])),
         "activities": response_activities,
         # Template information
         "has_template": has_template,
