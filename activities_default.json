@@ -1,11 +1,11 @@
 {
   "general": {
-    "experimentID": "irrelevant",
+    "experimentID": "default",
     "app_name": "O-ELIDDI MPIAE",
     "version": "1.0.0",
-    "author": "John",
+    "author": "Tim Schaefer",
     "language": "en",
-    "instructions": false,
+    "instructions": true,
     "primary_redirect_url": "pages/thank-you.html",
     "fallbackToCSV": true
   },
@@ -54,58 +54,63 @@
             "name": "Travel & Transit",
             "activities": [
               {
-                "name": "Travelling: walking",
-                "code": 1111,
-                "label": "travelling: walking",
-                "short": "walk",
-                "vshort": "wlk",
+                "name": "Travelling",
+                "code": 1110,
+                "label": "travelling",
+                "short": "trv",
+                "vshort": "trv",
                 "color": "#98FB98",
-                "childItems": []
-              },
-              {
-                "name": "Travelling: cycle",
-                "code": 1112,
-                "label": "travelling: cycle",
-                "short": "cycle",
-                "vshort": "cyc",
-                "color": "#90EE90",
-                "childItems": []
-              },
-              {
-                "name": "Travelling: running",
-                "code": 1113,
-                "label": "travelling: running",
-                "short": "run",
-                "vshort": "run",
-                "color": "#9ACD32",
-                "childItems": []
-              },
-              {
-                "name": "Travelling: car, motorbike, moped, E-scooter, taxi or similar",
-                "code": 1114,
-                "label": "travelling: motorbike, moped",
-                "short": "car/motor",
-                "vshort": "car",
-                "color": "#7CFC00",
-                "childItems": []
-              },
-              {
-                "name": "Travelling: public transport",
-                "code": 1115,
-                "label": "travelling: public transport",
-                "short": "travel / public",
-                "vshort": "bus+",
-                "color": "#32CD32",
-                "childItems": []
-              },
-              {
-                "name": "Travelling: other",
-                "code": 1116,
-                "label": "travelling: other",
-                "short": "other travel",
-                "vshort": "trav",
-                "color": "#00FA9A",
-                "childItems": []
+                "childItems": [
+
+                  {
+                    "name": "Travelling: walking",
+                    "code": 1111,
+                    "label": "travelling: walking",
+                    "short": "walk",
+                    "vshort": "wlk",
+                    "color": "#98FB98"
+                  },
+                  {
+                    "name": "Travelling: cycle",
+                    "code": 1112,
+                    "label": "travelling: cycle",
+                    "short": "cycle",
+                    "vshort": "cyc",
+                    "color": "#90EE90"
+                  },
+                  {
+                    "name": "Travelling: running",
+                    "code": 1113,
+                    "label": "travelling: running",
+                    "short": "run",
+                    "vshort": "run",
+                    "color": "#9ACD32"
+                  },
+                  {
+                    "name": "Travelling: car, motorbike, moped, E-scooter, taxi or similar",
+                    "code": 1114,
+                    "label": "travelling: motorbike, moped",
+                    "short": "car/motor",
+                    "vshort": "car",
+                    "color": "#7CFC00"
+                  },
+                  {
+                    "name": "Travelling: public transport",
+                    "code": 1115,
+                    "label": "travelling: public transport",
+                    "short": "travel / public",
+                    "vshort": "bus+",
+                    "color": "#32CD32"
+                  },
+                  {
+                    "name": "Travelling: other",
+                    "code": 1116,
+                    "label": "travelling: other",
+                    "short": "other travel",
+                    "vshort": "trav",
+                    "color": "#00FA9A"
+                  }
+                ]
               }
             ]
           },
@@ -113,14 +118,15 @@
             "name": "Work / Study",
             "activities": [
               {
-                "name": "Paid Work",
+                "name": "Paid Work (please specify job)",
                 "examples": "Including work from home",
                 "code": 1120,
                 "label": "paid work (including at home)",
                 "short": "work",
                 "vshort": "wrk",
                 "color": "#FFB6C1",
-                "childItems": []
+                "childItems": [],
+                "is_custom_input": true
               },
               {
                 "name": "Education, Studying, Learning",
@@ -218,13 +224,13 @@
             ]
           },
           {
-            "name": "Social, Leisure & Hobbies At Home",
+            "name": "Activities At Home (Non-Digital)",
             "activities": [
               {
-                "name": "Socialising at Home",
+                "name": "Socialising",
                 "examples": "Meeting family, friends, phone call",
                 "code": 1140,
-                "label": "socialising at home with family, friends, phone call",
+                "label": "socialising with family, friends, phone call",
                 "short": "socialise home",
                 "vshort": "soc",
                 "color": "#DDA0DD",
@@ -256,7 +262,7 @@
                 "color": "#D8BFD8"
               },
               {
-                "name": "Sports / Exercise at Home (please specify)",
+                "name": "Sports / Exercise",
                 "code": 1144,
                 "label": "sports, exercise",
                 "short": "exercise",
@@ -287,10 +293,10 @@
             ]
           },
           {
-            "name": "Social, Leisure & Hobbies Outside of Home",
+            "name": "Activities out of Home (Non-Digital)",
             "activities": [
               {
-                "name": "Socialising out of Home",
+                "name": "Socialising",
                 "examples": "meeting family, friends",
                 "code": 1160,
                 "label": "Socialising out of home with family, friends, phone call",
@@ -300,11 +306,11 @@
                 "childItems": []
               },
               {
-                "name": "Religious / Spiritual Practice, Meditation outside",
+                "name": "Religious / Spiritual Practice, Meditation",
                 "examples": "Church, temple, mosque, synagogue, meditation center, visit cemetery",
                 "code": 1161,
-                "label": "Religious or spiritual practice, meditation outside",
-                "short": "religious out",
+                "label": "Religious or spiritual practice, meditation",
+                "short": "religious practice",
                 "vshort": "rel",
                 "color": "#D8BFD8"
               },
@@ -377,7 +383,7 @@
                     "color": "#9370DB"
                   },
                   {
-                    "name": "Other outdoor sports/exercise (please specify)",
+                    "name": "Other outdoor sports/exercise",
                     "examples": "Cycling, hiking, team sports, etc",
                     "code": 1171,
                     "label": "sports outdoors other",
@@ -389,7 +395,7 @@
                 ]
               },
               {
-                "name": "Sports / Exercise indoors (please specify)",
+                "name": "Sports / Exercise indoors",
                 "examples": "Gym, swimming, fitness classes, indoor climbing, etc",
                 "code": 1172,
                 "label": "sports, exercise indoors",
@@ -400,7 +406,7 @@
                 "is_custom_input": true
               },
               {
-                "name": "Other out of home activities (please specify)",
+                "name": "Other out of home activities",
                 "code": 1173,
                 "label": "other",
                 "short": "other",
