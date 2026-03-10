@@ -4,7 +4,7 @@
     "app_name": "O-ELIDDI MPIAE",
     "version": "1.0.0",
     "author": "Tim Schaefer",
-    "language": "en",
+    "language": "sv",
     "instructions": true,
     "primary_redirect_url": "pages/thank-you.html",
     "fallbackToCSV": true
