@@ -1,0 +1,42 @@
+name: TUD Backend Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**'  # Only run when backend files change
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**'
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+    - name: Install dependencies
+      run: |
+        uv sync --frozen
+
+    - name: Run tests
+      run: |
+        uv run pytest tests/ -v --tb=short
