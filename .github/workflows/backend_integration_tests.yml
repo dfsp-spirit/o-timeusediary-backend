@@ -45,6 +45,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://user:password@localhost:5432/tud_db
         run: |
+          cp dev_tools/ci/backend_settings/.env.ci backend/.env
           cd backend
           # Start in background
           uv run uvicorn o_timeusediary_backend.api:app --host 127.0.0.1 --port 8000 &
