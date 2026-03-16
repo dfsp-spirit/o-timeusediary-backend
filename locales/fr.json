@@ -79,5 +79,11 @@
     "heading": "Merci !",
     "subtitle": "Votre soumission a été complétée avec succès.",
     "message": "Merci de participer à notre étude <span class=\"app-name\">O-ELIDDI</span>. Vos réponses ont été enregistrées et contribueront à des recherches précieuses."
+  },
+  "footer": {
+    "title": "TRAC",
+    "backend_status_connecting": "Connexion au backend...",
+    "backend_status_connected": "Connecté au backend",
+    "backend_status_error": "Erreur de connexion au backend"
   }
 }

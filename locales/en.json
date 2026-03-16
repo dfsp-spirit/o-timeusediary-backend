@@ -79,5 +79,11 @@
     "heading": "Thank You!",
     "subtitle": "Your submission has been completed successfully.",
     "message": "Thank you for participating in our <span class=\"app-name\">O-ELIDDI</span> study. Your responses have been recorded and will contribute to valuable research."
+  },
+  "footer": {
+    "title": "TRAC",
+    "backend_status_connecting": "Connecting to backend...",
+    "backend_status_connected": "Connected to backend",
+    "backend_status_error": "Error connecting to backend"
   }
 }

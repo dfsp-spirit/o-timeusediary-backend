@@ -3213,6 +3213,7 @@ async function init() {
 
         checkAndRequestPID();
         preventPullToRefresh();
+        let configLoadSuccess = false;
 
         // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
@@ -3226,6 +3227,8 @@ async function init() {
         if (!participantId || !studyName) {
             throw new Error('Missing participant ID or study name in URL parameters');
         }
+
+        const footerStatus = document.getElementById('footer_backend_status');
 
         try {
             // Fetch the activities configuration from backend
@@ -3241,15 +3244,31 @@ async function init() {
             });
 
             if (!response.ok) {
+                // set the text of span with id "footer_backend_status" to i18n.backend_status_error
+
+                configLoadSuccess = false;
+                if(footerStatus) {
+                    footerStatus.textContent = "Backend error"; // i18n not available yet
+                } else {
+                    console.warn('Footer status element not found, cannot display backend error status');
+                }
+
                 throw new Error(`Backend returned ${response.status} for activities config`);
             }
 
             configData = await response.json();
             console.log('Successfully loaded activities config from backend');
             document.title = configData.general.app_name || 'Time Use Diary';
+            configLoadSuccess = true;
 
         } catch (error) {
             console.error('Failed to load activities config from backend:', error);
+            configLoadSuccess = false;
+            if(footerStatus) {
+                    footerStatus.textContent = "Backend error"; // i18n not available yet
+            } else {
+                console.warn('Footer status element not found, cannot display backend error status');
+            }
             document.title = 'Time Use Diary';
             throw new Error(`Cannot load activities configuration: ${error.message}. The application requires backend configuration to run.`);
         }
@@ -3270,6 +3289,15 @@ async function init() {
 
         await i18n.init(language);
         i18n.applyTranslations();
+
+        if (footerStatus) {
+            if (configLoadSuccess) {
+                footerStatus.textContent = i18n.t('footer.backend_status_connected');
+            } else {
+                footerStatus.textContent = i18n.t('footer.backend_status_error');
+            }
+        }
+
 
         // Handle instructions or redirection if needed
         const instructionsConfig = configData.general?.instructions;

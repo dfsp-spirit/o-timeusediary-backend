@@ -110,18 +110,16 @@
 
     <div id="instructionsFooter" style="padding: 20px; background: white; border-top: 1px solid #ddd; text-align: left; margin-top: 20px;">
         <div style="display: flex; justify-content: flex-end; align-items: center;">
-            <!--
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-            <button onclick="window.location.href='./pages/instructions.html'" class="navigation-btn">
-                <i class="fas fa-chevron-left"></i>
-                <span data-i18n="buttons.backToInstructions">Back to Instructions</span>
-            </button>
-            -->
             <button id="navSubmitBtn" class="nav-submit-btn">
                 <i class="fas fa-check"></i>
                 <span data-i18n="buttons.submit">Submit</span>
             </button>
         </div>
+    </div>
+    <div id="footer" style="padding: 20px; border-top: 1px solid #ddd; text-align: center; margin-top: 20px; font-size: small; color: #ccc;">
+        <span id="footer_app_title" data-i18n="footer.text">TRAC</span>
+        <br />
+        <span id="footer_backend_status" >Connecting to backend...</span>
     </div>
 </body>
 </html>

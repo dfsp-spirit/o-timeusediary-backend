@@ -79,5 +79,11 @@
     "heading": "Tack!",
     "subtitle": "Din inskickning har slutförts framgångsrikt.",
     "message": "Tack för att du deltar i vår <span class=\"app-name\">O-ELIDDI</span>-studie. Dina svar har registrerats och kommer att bidra till värdefull forskning."
+  },
+  "footer": {
+    "title": "TRAC",
+    "backend_status_connecting": "Ansluter till backend...",
+    "backend_status_connected": "Ansluten till backend",
+    "backend_status_error": "Fel vid anslutning till backend"
   }
 }
