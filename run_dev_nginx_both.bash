@@ -4,21 +4,14 @@
 # Also runs the FastAPI backend on port 8000. Make sure to have nginx installed.
 #
 # To use this script, simply run it from the terminal. It will start nginx in the background and then run the FastAPI backend in the foreground.
-# However, you need to properly configure the frontend and backend paths in the o-timeusediary settings files to match the nginx configuration:
-#
-# - In the frontend, in file <frontend-repo>/settings/tud_settings.js, set the API_BASE_URL to http://localhost/tud_backend/api
-# - In the backend, in file <backen-repo>/.env, make sure to:
-#        * set the TUD_ROOTPATH to /tud_backend
-#        * set the TUD_FRONTEND_URL to http://localhost:3000/report/
-#        * make sure that TUD_ALLOWED_ORIGINS is set to '["http://localhost:3000", "http://127.0.0.1:3000"]', the default.
-#
-# You can access the frontend at http://localhost:3000/report/ and the backend API at http://localhost:3000/tud_backend/api.
 
 
 ## Start nginx with the development configuration in background
 
 ## save current directory to return to it later
 CURRENT_DIR=$(pwd)
+
+echo "yo yo"
 
 NGINX_CONF_DIR="./dev_tools/local_nginx/webserver_config/"
 
@@ -30,6 +23,8 @@ fi
 cd "$NGINX_CONF_DIR" || { echo -e "ERROR: Failed to change directory to '$NGINX_CONF_DIR'"; exit 1; }
 
 
+GIT_FRONTEND_REPO_PATH=$CURRENT_DIR/frontend
+GIT_BACKEND_REPO_PATH=$CURRENT_DIR/backend
 
 # Create the nginx configuration file from the template, replacing 'USERHOME' with the actual home directory
 NGINX_CONF_FILE="./dev.nginx.conf"

@@ -31,7 +31,7 @@ OUTPUT_FILE="$2"
 FRONTEND_REPO_PATH="$3"
 BACKEND_REPO_PATH="$4"
 CUSTOM_HOME_PATH="$5"
-echo "Using input file: $INPUT_FILE and output file: $OUTPUT_FILE"
+echo "[replace_home] Using input file: $INPUT_FILE and output file: $OUTPUT_FILE"
 
 
 if [ ! -d "$FRONTEND_REPO_PATH" ]; then
