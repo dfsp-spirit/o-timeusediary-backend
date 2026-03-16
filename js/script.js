@@ -3213,7 +3213,7 @@ async function init() {
 
         checkAndRequestPID();
         preventPullToRefresh();
-        let configLoadSuccess = false;
+        let configLoadBackendSuccess = false;
 
         // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
@@ -3246,9 +3246,10 @@ async function init() {
             if (!response.ok) {
                 // set the text of span with id "footer_backend_status" to i18n.backend_status_error
 
-                configLoadSuccess = false;
+                configLoadBackendSuccess = false;
                 if(footerStatus) {
                     footerStatus.textContent = "Backend error"; // i18n not available yet
+                    footerStatus.style.color = 'red';
                 } else {
                     console.warn('Footer status element not found, cannot display backend error status');
                 }
@@ -3259,13 +3260,14 @@ async function init() {
             configData = await response.json();
             console.log('Successfully loaded activities config from backend');
             document.title = configData.general.app_name || 'Time Use Diary';
-            configLoadSuccess = true;
+            configLoadBackendSuccess = true;
 
         } catch (error) {
             console.error('Failed to load activities config from backend:', error);
-            configLoadSuccess = false;
+            configLoadBackendSuccess = false;
             if(footerStatus) {
                     footerStatus.textContent = "Backend error"; // i18n not available yet
+                    footerStatus.style.color = 'red';
             } else {
                 console.warn('Footer status element not found, cannot display backend error status');
             }
@@ -3291,10 +3293,12 @@ async function init() {
         i18n.applyTranslations();
 
         if (footerStatus) {
-            if (configLoadSuccess) {
+            if (configLoadBackendSuccess) {
                 footerStatus.textContent = i18n.t('footer.backend_status_connected');
+                footerStatus.style.color = '#ccc';
             } else {
                 footerStatus.textContent = i18n.t('footer.backend_status_error');
+                footerStatus.style.color = 'red';
             }
         }
 
