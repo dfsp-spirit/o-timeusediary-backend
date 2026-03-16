@@ -1,4 +1,4 @@
-name: TUD Backend Tests
+name: TUD Backend Unit Tests
 
 on:
   push:

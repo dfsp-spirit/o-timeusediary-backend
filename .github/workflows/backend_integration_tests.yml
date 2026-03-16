@@ -1,4 +1,4 @@
-name: Backend Integration Tests
+name: TUD Backend Integration Tests
 on: [push, pull_request]
 
 jobs:

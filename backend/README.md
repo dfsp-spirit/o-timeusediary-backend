@@ -1,8 +1,9 @@
 # o-timeusediary
 The FastAPI frontend and backend for the custom o-timeusediary (TUD) fork of MPIAE.
 
-[![Backend Tests](https://github.com/dfsp-spirit/o-timeusediary-backend/actions/workflows/backend_tests.yml/badge.svg)](https://github.com/dfsp-spirit/o-timeusediary-backend/actions/workflows/backend_tests.yml)
+[![Backend Unit Tests](https://github.com/dfsp-spirit/trac/actions/workflows/backend_unit_tests.yml/badge.svg)](https://github.com/dfsp-spirit/trac/actions/workflows/backend_unit_tests.yml)
 
+[![Backend Integration Tests](https://github.com/dfsp-spirit/trac/actions/workflows/backend_integration_tests.yml/badge.svg)](https://github.com/dfsp-spirit/trac/actions/workflows/backend_integration_tests.yml)
 
 
 ## About
@@ -18,9 +19,11 @@ What we did is we modified the frontend to also support:
 
 ## Development Setup
 
+Make sure you have `uv`. It is recommended to also install `nginx`.
+
 ```bash
-git clone https://github.com/dfsp-spirit/o-timeusediary-backend
-cd o-timeusediary-backend/
+git clone https://github.com/dfsp-spirit/trac
+cd trac/
 
 
 cd backend/
@@ -39,6 +42,6 @@ cd ..   # to repo root
 ./run_backend_dev_minimal.sh      # will use Python's built-in web server
 ```
 
-To run both the frontend and backend, check out the frontend on the same file system level and run [./run_dev_nginx_both.bash](./run_dev_nginx_both.bash) if you have nginx installed.
+To run both the frontend and backend, check out the frontend on the same file system level and run [./run_dev_nginx_both.bash](./run_dev_nginx_both.bash) if you have `nginx` installed.
 
 
