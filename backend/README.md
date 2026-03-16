@@ -3,9 +3,6 @@ The FastAPI frontend and backend for the custom o-timeusediary (TUD) fork of MPI
 
 [![Backend Tests](https://github.com/dfsp-spirit/o-timeusediary-backend/actions/workflows/backend_tests.yml/badge.svg)](https://github.com/dfsp-spirit/o-timeusediary-backend/actions/workflows/backend_tests.yml)
 
-See the [mpiae_adapt branch here](https://github.com/dfsp-spirit/o-timeusediary/tree/mpiae_adapt) for the frontend.
-
-Releases of the frontend and backend that are compatible with each other are tagged with the same version in git.
 
 
 ## About
@@ -25,9 +22,10 @@ What we did is we modified the frontend to also support:
 git clone https://github.com/dfsp-spirit/o-timeusediary-backend
 cd o-timeusediary-backend/
 
+
+cd backend/
+
 # Create virtual environment and install dependencies
-uv venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 uv sync --dev
 
 # Run tests to verify setup
@@ -37,10 +35,10 @@ uv run pytest
 Then run the backend:
 
 ```bash
-./run_dev_backend_minimal.sh        # will use Python's built-in web server, nothing else required.
+cd ..   # to repo root
+./run_backend_dev_minimal.sh      # will use Python's built-in web server
 ```
 
 To run both the frontend and backend, check out the frontend on the same file system level and run [./run_dev_nginx_both.bash](./run_dev_nginx_both.bash) if you have nginx installed.
 
-Now connect via curl, e.g., `curl http://localhost:8000/entries/`, or setup and run the frontend: see the [frontend repo](https://github.com/dfsp-spirit/o-timeusediary/tree/mpiae_adapt), and make sure you use the `mpiae_adapt` branch.
 
