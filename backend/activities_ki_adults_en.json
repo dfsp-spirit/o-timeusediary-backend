@@ -138,7 +138,7 @@
                 "color": "#FFA07A",
                 "childItems": [
                   {
-                    "name": "Upper Secondary School/High School (Gymnasieskola)",
+                    "name": "Upper Secondary School/High School",
                     "code": 1124,
                     "label": "upper secondary school/high school",
                     "short": "upper secondary",
@@ -146,7 +146,7 @@
                     "color": "#FFA07A"
                   },
                   {
-                    "name": "Apprenticeship at Upper Secondary Level (Lärlingsutbildning)",
+                    "name": "Apprenticeship at Upper Secondary Level",
                     "code": 1125,
                     "label": "apprenticeship at upper secondary level",
                     "short": "apprenticeship",
@@ -154,7 +154,7 @@
                     "color": "#FFA07A"
                   },
                   {
-                    "name": "Higher Vocational Education (Yrkeshögskola)",
+                    "name": "Higher Vocational Education",
                     "code": 1126,
                     "label": "higher vocational education",
                     "short": "vocational education",
@@ -162,7 +162,7 @@
                     "color": "#FFA07A"
                   },
                   {
-                    "name": "University College (Högskola)",
+                    "name": "University College",
                     "code": 1127,
                     "label": "university college",
                     "short": "college",
