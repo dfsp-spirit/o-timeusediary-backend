@@ -310,6 +310,37 @@ function createModal() {
         document.getElementById('nextBtn').disabled = true;
     });
 
+    const skipConfirmationModal = document.createElement('div');
+    skipConfirmationModal.className = 'modal-overlay';
+    skipConfirmationModal.id = 'skipConfirmationModal';
+    skipConfirmationModal.innerHTML = `
+        <div class="modal">
+            <div class="modal-content">
+                <h3 data-i18n="modals.confirmSkip.title">Do you really want to skip all time reporting?</h3>
+                <p data-i18n="modals.confirmSkip.message">You will be taken directly to the thank-you page.</p>
+                <div class="button-container">
+                    <button id="confirmSkipCancel" class="btn btn-secondary" data-i18n="buttons.cancel">Cancel</button>
+                    <button id="confirmSkipOk" class="btn save-btn" data-i18n="buttons.ok">OK</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    skipConfirmationModal.querySelector('#confirmSkipCancel').addEventListener('click', () => {
+        skipConfirmationModal.style.cssText = 'display: none !important';
+    });
+
+    skipConfirmationModal.querySelector('#confirmSkipOk').addEventListener('click', () => {
+        skipConfirmationModal.style.cssText = 'display: none !important';
+        redirectToThankYouPage();
+    });
+
+    skipConfirmationModal.addEventListener('click', (e) => {
+        if (e.target === skipConfirmationModal) {
+            skipConfirmationModal.style.cssText = 'display: none !important';
+        }
+    });
+
     // Create loading modal
     const loadingModal = document.createElement('div');
     loadingModal.className = 'modal-overlay';
@@ -326,6 +357,7 @@ function createModal() {
 
     document.body.appendChild(activitiesModal);
     document.body.appendChild(confirmationModal);
+    document.body.appendChild(skipConfirmationModal);
     document.body.appendChild(loadingModal);
     document.body.appendChild(customActivityModal);
 
@@ -666,6 +698,14 @@ function updateButtonStates() {
     }
 }
 
+function redirectToThankYouPage() {
+    const redirectUrl = window.timelineManager?.general?.primary_redirect_url || 'thank-you.html';
+    const currentParams = new URLSearchParams(window.location.search);
+    const separator = redirectUrl.includes('?') ? '&' : '?';
+    const finalUrl = redirectUrl + (currentParams.toString() ? separator + currentParams.toString() : '');
+    window.location.href = finalUrl;
+}
+
 
 
 // Shared debounce variables for both Next button and navigation submit button
@@ -788,6 +828,7 @@ function initButtons() {
 
     const cleanRowBtn = document.getElementById('cleanRowBtn');
     const navSubmitBtn = document.getElementById('navSubmitBtn');
+    const skipReportingBtn = document.getElementById('skipReportingBtn');
 
     // Initialize the navigation submit button with proper debounce
     if (navSubmitBtn) {
@@ -877,6 +918,15 @@ function initButtons() {
 
     // Add click handler for Back button using shared debounced function
     document.getElementById('backBtn').addEventListener('click', handleBackButtonAction);
+
+    if (skipReportingBtn) {
+        skipReportingBtn.addEventListener('click', () => {
+            const skipConfirmationModal = document.getElementById('skipConfirmationModal');
+            if (skipConfirmationModal) {
+                skipConfirmationModal.style.display = 'block';
+            }
+        });
+    }
 
     // Disable back button initially
     const backButton = document.getElementById('backBtn');

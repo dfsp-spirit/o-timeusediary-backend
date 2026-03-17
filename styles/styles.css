@@ -1115,6 +1115,14 @@ body {
     background-color: #1d4ed8;
 }
 
+.skip-btn {
+    background-color: var(--danger-color);
+}
+
+.skip-btn:hover:not(:disabled) {
+    background-color: #b91c1c;
+}
+
 /* When next button shows Submit text, use success color */
 .next-btn:has(i.fa-check) {
     background-color: var(--success-color);

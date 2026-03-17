@@ -28,6 +28,7 @@
     "undo": "Annuler",
     "cleanRow": "Nettoyer la Ligne",
     "next": "Suivant",
+    "skipReporting": "Ignorer le rapport de temps",
     "back": "Retour",
     "backToInstructions": "Retour aux Instructions",
     "ok": "OK",
@@ -54,6 +55,10 @@
     "confirmSubmit": {
       "title": "Êtes-vous sûr?",
       "message": "Vous ne pourrez pas changer vos réponses."
+    },
+    "confirmSkip": {
+      "title": "Voulez-vous vraiment ignorer tout le rapport de temps ?",
+      "message": "Vous serez redirigé directement vers la page de remerciement."
     },
     "loading": {
       "title": "Soumission de votre journal...",

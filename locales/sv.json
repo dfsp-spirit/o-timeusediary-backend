@@ -28,6 +28,7 @@
     "undo": "Ångra",
     "cleanRow": "Rensa rad",
     "next": "Nästa tidslinje",
+    "skipReporting": "Hoppa över tidsrapportering",
     "back": "Tillbaka",
     "backToInstructions": "Tillbaka till instruktioner",
     "ok": "OK",
@@ -54,6 +55,10 @@
     "confirmSubmit": {
       "title": "Skicka in den här dagen?",
       "message": "Du kommer inte att kunna ändra dina svar för den här dagen."
+    },
+    "confirmSkip": {
+      "title": "Vill du verkligen hoppa över all tidsrapportering?",
+      "message": "Du kommer att skickas direkt till tack-sidan."
     },
     "loading": {
       "title": "Skickar din dagbok...",

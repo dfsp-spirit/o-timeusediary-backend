@@ -28,6 +28,7 @@
     "undo": "Undo",
     "cleanRow": "Clean Row",
     "next": "Next Timeline",
+    "skipReporting": "Skip time reporting",
     "back": "Back",
     "backToInstructions": "Back to Instructions",
     "ok": "OK",
@@ -54,6 +55,10 @@
     "confirmSubmit": {
       "title": "Submit this day?",
       "message": "You will not be able to change your responses for this day."
+    },
+    "confirmSkip": {
+      "title": "Do you really want to skip all time reporting?",
+      "message": "You will be taken directly to the thank-you page."
     },
     "loading": {
       "title": "Submitting your diary...",

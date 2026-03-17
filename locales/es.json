@@ -29,6 +29,7 @@
     "undo": "Deshacer",
     "cleanRow": "Limpiar Fila",
     "next": "Siguiente",
+    "skipReporting": "Omitir reporte de tiempo",
     "back": "Atrás",
     "backToInstructions": "Volver a Instrucciones",
     "ok": "OK",
@@ -55,6 +56,10 @@
     "confirmSubmit": {
       "title": "¿Estás seguro?",
       "message": "No podrás cambiar tus respuestas."
+    },
+    "confirmSkip": {
+      "title": "¿Realmente quieres omitir todo el reporte de tiempo?",
+      "message": "Serás llevado directamente a la página de agradecimiento."
     },
     "loading": {
       "title": "Enviando tu diario...",
