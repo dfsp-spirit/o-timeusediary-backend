@@ -44,4 +44,15 @@ cd ..   # to repo root
 
 To run both the frontend and backend, check out the frontend on the same file system level and run [./run_dev_nginx_both.bash](./run_dev_nginx_both.bash) if you have `nginx` installed.
 
+## Howto make a release (developers only)
+
+* record changes in `CHANGES` file
+* bump version of backend in `backend/src/o-timeusediary_backend/__init__.py`
+* bump version of frontend in `frontend/src/js/constants.js`
+* create commit with the mentioned changes
+* tag the commit with the new version
+* run `git push --tags` to publish
+* in the backend dir, run `uv build` to create the wheel artefact
+* log into Github account, draft a new release, copy change notes from CHANGES in there and attach the wheel artefact
+
 
