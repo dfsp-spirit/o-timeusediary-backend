@@ -5,6 +5,17 @@ TRAC MPIAE Changes
 Current WIP
 -----------
 
+
+Version 0.9.2 -- Admin interface overhaul
+------------------------------------------
+* FIX: Disable activities download button for study if it has no activities recorded yet
+* FIX: fix download paths in admin interface when served with rootpath
+* CHG: Use our custom instructions page by default. Will need to implement by-study instructions page later.
+* CHG: better status report in /health endpoint of API, changed returned response values and made it clear what they mean
+* FIX: development only: copy config files in dev_both... script.
+* WIP: development only: the E2E tests are still WIP and broken (unchanged from release 0.9.1)
+
+
 Version 0.9.1 -- More bug fixes, skip button
 ---------------------------------------------
 * CHG: refactor activity loading to happen in one central place.
@@ -12,7 +23,7 @@ Version 0.9.1 -- More bug fixes, skip button
 * FIX: when selecting an activitiy, ensure all others are unselected.
 * FIX: when changing page, ensure currently selected activity (if any) is cleared
 * NEW: add skip button in frontend
-* WIP: adding E2E tests with playwright. Currently still failing due to wrong expectations on start URL. Ignore for now.
+* WIP: development only: adding E2E tests with playwright. Currently still failing due to wrong expectations on start URL. Ignore for now.
 
 
 Version 0.9.0 -- Small fixes
