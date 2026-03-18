@@ -61,7 +61,7 @@ http {
 
         # Optional: Handle requests without the prefix (redirect or 404)
         location / {
-            return 404 "This development server only serves paths under '/report/' (frontend) and '/tud_backend/' (backend).";
+            return 404 "This development server only serves paths under '/report/' (frontend) and '/tud_backend/' (backend).\nTry '/report/index.html' or '/tud_backend/api/active_open_study_names', or '/tud_backend/admin'.";
         }
     }
 }

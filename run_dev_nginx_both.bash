@@ -39,7 +39,11 @@ fi
 
 FULL_NGINX_CONF_PATH="$(pwd)/$NGINX_CONF_FILE" # nginx requires an absolute path to the configuration file, or changing its config dir.
 
-nginx -c "$FULL_NGINX_CONF_PATH"
+# Copy frontend config file
+cp "$CURRENT_DIR/dev_tools/local_nginx/frontend_settings/tud_settings.dev-nginx.js" "$CURRENT_DIR/frontend/src/settings/tud_settings.js" || { echo -e "ERROR: Failed to copy frontend config file"; exit 1; }
+
+# Copy backend config .env file
+cp "$CURRENT_DIR/dev_tools/local_nginx/backend_settings/.env.dev-nginx" "$CURRENT_DIR/backend/.env" || { echo -e "ERROR: Failed to copy backend config file"; exit 1; }
 
 cleanup() {
     echo -e "\n Shutting down nginx service..."
@@ -49,6 +53,8 @@ cleanup() {
 
 # Set up trap for Ctrl+C
 trap cleanup SIGINT SIGTERM
+
+nginx -c "$FULL_NGINX_CONF_PATH"
 
 if [ $? -eq 0 ]; then
     echo -e "Started nginx successfully, frontend available at http://localhost:3000/report/"
@@ -61,7 +67,7 @@ else
 fi
 
 
-## Start the FastAPI backend in the foreground (you can stop it with Ctrl+C)
+## Start the FastAPI backend in the foreground
 
 cd "$CURRENT_DIR/backend/" && uv run uvicorn o_timeusediary_backend.api:app --reload --host 127.0.0.1 --port 8000 || { echo -e " Failed to start FastAPI backend"; exit 1; }
 
