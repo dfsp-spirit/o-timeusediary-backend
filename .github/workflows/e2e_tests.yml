@@ -72,6 +72,10 @@ jobs:
           cd backend
           uv run uvicorn o_timeusediary_backend.api:app --host 127.0.0.1 --port 8000 > /tmp/backend.log 2>&1 &
           backend_pid=$!
+
+          sleep 5
+          cat /tmp/backend.log
+
           cd ..
 
           trap 'kill "$backend_pid" || true' EXIT
