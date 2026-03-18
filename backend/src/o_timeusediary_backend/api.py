@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import logging
 import uuid
@@ -243,17 +243,25 @@ def health_check(session: Session = Depends(get_session)):
     return {"status": "healthy", "all_studies_count": len(all_studies), "open_studies_count": len(open_studies), "tud_version": tud_version}
 
 
-@app.get("/api/debug/routes")
-def debug_routes():
-    routes = []
-    for route in app.routes:
-        if hasattr(route, "path") and "/api/studies" in route.path:
-            routes.append({
-                "path": route.path,
-                "methods": getattr(route, "methods", []),
-                "name": getattr(route, "name", "")
-            })
-    return {"routes": routes}
+@app.get("/api/docs")
+async def redirect_to_docs(request: Request):
+    root_path = request.scope.get("root_path", "")
+    # Ensure no double slashes
+    redirect_url = f"{root_path}/docs".replace("//", "/")
+    return RedirectResponse(url=redirect_url)
+
+
+# @app.get("/api/debug/routes")
+# def debug_routes():
+#     routes = []
+#     for route in app.routes:
+#         if hasattr(route, "path") and "/api/studies" in route.path:
+#             routes.append({
+#                 "path": route.path,
+#                 "methods": getattr(route, "methods", []),
+#                 "name": getattr(route, "name", "")
+#             })
+#     return {"routes": routes}
 
 
 
