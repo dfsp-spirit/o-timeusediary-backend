@@ -382,6 +382,7 @@
                 <div class="export-buttons" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e9ecef;">
                     <strong style="display: block; margin-bottom: 0.5rem; color: #495057;">Export Activities:</strong>
                     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    {% if study_data.total_activities > 0 %}
                         <a href="{{ request.scope.root_path }}/api/admin/export/{{ study_data.study.name_short }}/activities?format=csv"
                         class="export-btn"
                         style="display: inline-block; padding: 0.5rem 1rem; background: #28a745; color: white; text-decoration: none; border-radius: 4px; font-size: 0.9rem; font-weight: 500; transition: background 0.2s;">
@@ -396,6 +397,21 @@
                         class="export-btn"
                         style="display: inline-block; padding: 0.5rem 1rem; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; font-size: 0.9rem; font-weight: 500; transition: background 0.2s;">
                             📥 CSV (Clean)
+                        </a>
+                    {% else %}
+                        <span class="export-btn disabled"
+                            style="display: inline-block; padding: 0.5rem 1rem; background: #cccccc; color: #666666; text-decoration: none; border-radius: 4px; font-size: 0.9rem; font-weight: 500; cursor: not-allowed; opacity: 0.6;">
+                            📥 Download CSV (No activities)
+                        </span>
+                        <span class="export-btn disabled"
+                            style="display: inline-block; padding: 0.5rem 1rem; background: #cccccc; color: #666666; text-decoration: none; border-radius: 4px; font-size: 0.9rem; font-weight: 500; cursor: not-allowed; opacity: 0.6;">
+                            📥 Download JSON (No activities)
+                        </span>
+                        <span class="export-btn disabled"
+                            style="display: inline-block; padding: 0.5rem 1rem; background: #cccccc; color: #666666; text-decoration: none; border-radius: 4px; font-size: 0.9rem; font-weight: 500; cursor: not-allowed; opacity: 0.6;">
+                            📥 CSV Clean (No activities)
+                        </span>
+                    {% endif %}
                         </a>
                     </div>
                 </div>
