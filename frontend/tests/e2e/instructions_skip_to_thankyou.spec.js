@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
 test('instructions -> start -> skip reporting -> thank-you page', async ({ page }) => {
-  await page.goto('/index.html?study=default&lang=en', { waitUntil: 'domcontentloaded' });
+  await page.goto('index.html?study_name=default&lang=en', { waitUntil: 'domcontentloaded' });
 
   await expect(page).toHaveURL(/pages\/instructions\.html/);
   await expect(page.locator('#continueBtn')).toBeVisible();

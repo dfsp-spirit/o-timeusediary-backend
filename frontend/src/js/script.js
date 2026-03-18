@@ -3179,6 +3179,10 @@ function getCurrentDayIndex() {
     return parseInt(urlParams.get('day_label_index')) || 0;
 }
 
+function isInstructionsPagePath(pathname = window.location.pathname) {
+    return pathname.includes('/instructions/') || /\/pages\/instructions(?:\.html)?$/.test(pathname);
+}
+
 
 async function init() {
     console.log('==================== Initializing TUD frontend application... ====================');
@@ -3289,7 +3293,7 @@ async function init() {
         const instructionsConfig = configData.general?.instructions;
 
         if (instructionsConfig && !new URLSearchParams(window.location.search).has('instructions')) {
-            if (!window.location.pathname.includes('/instructions/')) {
+            if (!isInstructionsPagePath()) {
                 const currentParams = new URLSearchParams(window.location.search);
                 let redirectPath;
 
@@ -3335,7 +3339,7 @@ async function init() {
                     return;
                 }
             }
-        } else if (window.location.pathname.includes('/instructions/')) {
+        } else if (isInstructionsPagePath()) {
             // Check if we should redirect back from instructions page
             const shouldStayOnInstructions = instructionsConfig &&
                 (typeof instructionsConfig === 'boolean' && instructionsConfig === true) ||
