@@ -65,8 +65,10 @@ async def lifespan(app: FastAPI):
     if settings.debug:
         print(f"Debug mode enabled.")
 
-    logger.info("Running on_startup tasks...")
+    logger.info("Running startup tasks...")
     create_db_and_tables(settings.print_db_contents_on_startup)
+    logger.info(f"Running with rootpath '{settings.rootpath}' and allowed origins: '{settings.allowed_origins}'.")
+    logger.info(f"TUD Backend version {tud_version} startup tasks completed. Ready.")
 
     yield
 
@@ -236,8 +238,9 @@ def root():
 
 @app.get("/api/health")
 def health_check(session: Session = Depends(get_session)):
-    activities = session.exec(select(Activity)).all()
-    return {"status": "healthy", "entries_count": len(activities), "tud_version": tud_version}
+    all_studies = session.exec(select(Study)).all()
+    open_studies = session.exec(select(Study).where(Study.allow_unlisted_participants == True)).all()
+    return {"status": "healthy", "all_studies_count": len(all_studies), "open_studies_count": len(open_studies), "tud_version": tud_version}
 
 
 @app.get("/api/debug/routes")
