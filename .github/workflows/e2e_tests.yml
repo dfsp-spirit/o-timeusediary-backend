@@ -58,15 +58,7 @@ jobs:
           export FRONTEND_PATH="$GITHUB_WORKSPACE/frontend/src/"
           envsubst '$FRONTEND_PATH' < dev_tools/ci/webserver_config/ci.nginx.conf > /tmp/nginx.conf
           cp dev_tools/ci/frontend_settings/tud_settings.ci.js frontend/src/settings/tud_settings.js
-          # Allow nginx worker processes (www-data) to read and traverse to frontend files
-          # Parent directories need execute permission for traversal
-          chmod o+x "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/frontend" "$GITHUB_WORKSPACE/frontend/src"
-          # All files and subdirectories need proper permissions
-          chmod -R u=rwX,g=rX,o=rX "$GITHUB_WORKSPACE/frontend/src/"
-          find "$GITHUB_WORKSPACE/frontend/src/" -type f -exec chmod o+r {} \;
-          # Verify permissions
-          ls -ld "$GITHUB_WORKSPACE/frontend/src"
-          ls -la "$GITHUB_WORKSPACE/frontend/src/" | head -20
+          # nginx config now specifies 'user runner' to run as the user that owns the files
           sudo nginx -c /tmp/nginx.conf -p /tmp/
 
       - name: Run backend and Playwright tests
@@ -96,7 +88,7 @@ jobs:
 
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: playwright-report
           path: frontend/playwright-report/
@@ -104,7 +96,7 @@ jobs:
 
       - name: Upload backend log
         if: failure()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: backend-log
           path: /tmp/backend.log
@@ -112,7 +104,7 @@ jobs:
 
       - name: Upload nginx logs
         if: failure()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: nginx-logs
           path: /tmp/*.log
