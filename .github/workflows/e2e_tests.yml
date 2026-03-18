@@ -62,14 +62,20 @@ jobs:
 
       - name: Run backend and Playwright tests
         env:
-          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000/report
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000/report/
         run: |
+          set -euxo pipefail
+
           cp dev_tools/ci/backend_settings/.env.ci backend/.env
           cd backend
           uv run uvicorn o_timeusediary_backend.api:app --host 127.0.0.1 --port 8000 > /tmp/backend.log 2>&1 &
+          backend_pid=$!
           cd ..
 
-          timeout 60s bash -c 'until curl -fsS http://127.0.0.1:8000/tud_backend/api/health > /dev/null; do sleep 2; done'
+          trap 'kill "$backend_pid" || true' EXIT
+
+          timeout 60s bash -c 'until curl -fsS http://127.0.0.1:8000/api/health > /dev/null; do sleep 2; done'
+          timeout 60s bash -c 'until curl -fsS http://127.0.0.1:3000/tud_backend/api/health > /dev/null; do sleep 2; done'
           timeout 60s bash -c 'until curl -fsS http://127.0.0.1:3000/report/index.html > /dev/null; do sleep 2; done'
 
           cd frontend
