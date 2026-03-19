@@ -116,7 +116,11 @@ class ActivitiesConfig(BaseModel):
 ActivityItem.model_rebuild()
 
 def load_activities_config(config_path: str) -> ActivitiesConfig:
-    """Load activities configuration from JSON file"""
+    """Load activities configuration from JSON file.
+
+    @param config_path Path to the activities JSON configuration file.
+    @return Parsed and validated activities configuration.
+    """
 
     config_path = Path(config_path)
 
@@ -148,7 +152,9 @@ def get_cached_activities_config(config_path: str) -> ActivitiesConfig:
 def get_all_activity_codes(config: ActivitiesConfig) -> Dict[int, Dict[str, Any]]:
     """
     Extract all activity codes from the config with their context.
-    Returns a dictionary mapping code -> context info.
+
+    @param config Parsed activities configuration model.
+    @return Dictionary mapping activity code to context metadata.
     """
     codes_info = {}
 
@@ -191,7 +197,9 @@ def get_all_activity_codes(config: ActivitiesConfig) -> Dict[int, Dict[str, Any]
 def get_activity_codes_set(config: ActivitiesConfig) -> Set[int]:
     """
     Get a simple set of all activity codes.
-    Useful for quick membership checks.
+
+    @param config Parsed activities configuration model.
+    @return Set of all activity codes in timelines/categories/children.
     """
     all_codes = set()
 
@@ -220,7 +228,10 @@ def get_cached_activity_codes(config_path: str) -> Set[int]:
 def validate_activity_code(config_path: str, code: int) -> bool:
     """
     Validate that an activity code exists in the config.
-    Returns True if valid, False otherwise.
+
+    @param config_path Path to the activities JSON configuration file.
+    @param code Activity code to validate.
+    @return True when the code exists in the config, otherwise False.
     """
     valid_codes = get_cached_activity_codes(config_path)
     return code in valid_codes
@@ -229,7 +240,10 @@ def validate_activity_code(config_path: str, code: int) -> bool:
 def get_activity_info(config_path: str, code: int) -> Optional[Dict[str, Any]]:
     """
     Get detailed info about an activity by its code.
-    Returns None if code not found.
+
+    @param config_path Path to the activities JSON configuration file.
+    @param code Activity code to look up.
+    @return Activity metadata dictionary or None if not found.
     """
     config = get_cached_activities_config(config_path)
     all_codes_info = get_all_activity_codes(config)
@@ -239,7 +253,10 @@ def get_activity_info(config_path: str, code: int) -> Optional[Dict[str, Any]]:
 def validate_multiple_activity_codes(config_path: str, codes: List[int]) -> Dict[str, Any]:
     """
     Validate multiple activity codes at once.
-    Returns dict with validation results.
+
+    @param config_path Path to the activities JSON configuration file.
+    @param codes List of activity codes to validate.
+    @return Validation result with `valid`, `invalid`, and `all_valid` fields.
     """
     valid_codes = get_cached_activity_codes(config_path)
     results = {

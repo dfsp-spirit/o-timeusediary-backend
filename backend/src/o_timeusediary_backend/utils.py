@@ -16,11 +16,8 @@ def get_time_for_minutes_from_midnight(minutes_from_midnight : int) -> time:
     """
     Convert minutes from midnight to a time object.
 
-    Args:
-        minutes_from_midnight (int): Number of minutes since midnight
-
-    Returns:
-        datetime.time: Time object representing the given minutes
+    @param minutes_from_midnight Number of minutes since midnight.
+    @return Time object representing the given minutes, wrapped to a 24-hour day.
     """
     # Handle minutes that might exceed 24 hours (1440 minutes)
     minutes_from_midnight = minutes_from_midnight % (24 * 60)

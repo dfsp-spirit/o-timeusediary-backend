@@ -91,7 +91,11 @@ class CfgFileStudies(BaseModel):
 
 
 def load_studies_config(config_path: str) -> CfgFileStudies:
-    """Load studies configuration from YAML or JSON file"""
+    """Load studies configuration from YAML or JSON file.
+
+    @param config_path Path to a YAML/YML/JSON studies config file.
+    @return Parsed and validated studies configuration.
+    """
 
     config_path = Path(config_path)
 
