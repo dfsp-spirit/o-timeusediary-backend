@@ -6,6 +6,16 @@ Current WIP
 -----------
 
 
+Version 0.9.4 -- More frontend corncer case fixes, UX improvements and tests
+----------------------------------------------------------------------------
+* NEW: keep timeline height identical, no matter whether active or not, to prevent visual jumping on selecting the other one
+* NEW: make it clearer which timelines is active/editable by adding frame
+* FIX: fix bug that if you delete activities from timeline in mobile view, then switch, they still exist in desktop view
+* CHG: make instructions banner and template banner stay until closed. make instructions banner show up only on first day.
+* FIX: under certain conditions activities can move timelines due to bug with active timeline handling
+* NEW: add more E2E tests, including for activity deletion test, resizing activities on timeline, and all fixed bugs
+
+
 Version 0.9.3 -- Fix more frontend issues, prevent regression with E2E tests
 ----------------------------------------------------------------------------
 * NEW: development only: fix E2E test CI workflow and make tests work. Add various E2E tests.
