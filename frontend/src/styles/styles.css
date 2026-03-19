@@ -538,7 +538,7 @@ body {
 
     /* Conditional styling for inactive timelines */
     .timeline-container[data-active="false"] {
-        height: 60px; /* 20px shorter than default 80px */
+        height: 80px;
     }
 
     .timeline-container[data-active="false"] .hour-label,
