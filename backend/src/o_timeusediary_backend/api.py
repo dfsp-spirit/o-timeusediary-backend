@@ -34,7 +34,6 @@ from .api_deps.activities import (
     get_study_activity_codes
 )
 from fastapi.responses import HTMLResponse
-from datetime import datetime, timezone
 from sqlalchemy import func
 import csv
 import json
@@ -475,31 +474,18 @@ def submit_activities(
 
     now = utc_now()
 
-    # Make data_collection_start timezone aware
-    if study.data_collection_start.tzinfo is None:
-        data_collection_start = study.data_collection_start.replace(tzinfo=timezone.utc)
-    else:
-        data_collection_start = study.data_collection_start
-
-    # Make data_collection_end timezone aware
-    if study.data_collection_end.tzinfo is None:
-        data_collection_end = study.data_collection_end.replace(tzinfo=timezone.utc)
-    else:
-        data_collection_end = study.data_collection_end
-
-
-    if now < data_collection_start:
+    if now < study.data_collection_start:
         raise HTTPException(
             status_code=403,
             detail=f"Study '{study.name_short}' has not started yet. "
-                    f"Data collection starts on {data_collection_start.isoformat()}."
+                    f"Data collection starts on {study.data_collection_start.isoformat()}."
         )
 
-    if now > data_collection_end:
+    if now > study.data_collection_end:
         raise HTTPException(
             status_code=403,
             detail=f"Study '{study.name_short}' has ended. "
-                    f"Data collection ended on {data_collection_end.isoformat()}."
+                    f"Data collection ended on {study.data_collection_end.isoformat()}."
         )
 
     # Get all valid activity codes for this study
@@ -765,6 +751,8 @@ async def admin_overview(
             .order_by(DayLabel.display_order)
         ).all()
 
+        study_is_currently_collecting = study.data_collection_start <= utc_now() <= study.data_collection_end
+
         # Get timelines for this study
         timelines = session.exec(
             select(Timeline)
@@ -883,6 +871,7 @@ async def admin_overview(
         studies_data.append({
             "study": study,
             "day_labels": day_labels,
+            "is_actively_collecting": study_is_currently_collecting,
             "timelines": timelines,
             "timeline_stats": timeline_stats,
             "participants": participants,
@@ -942,6 +931,7 @@ async def admin_overview(
             "current_admin": current_admin,
             "studies_data": studies_data,
             "total_studies": total_studies,
+            "active_studies_count": sum(1 for s in studies_data if s["is_actively_collecting"]),
             "total_participants": total_participants,
             "total_activities_all": total_activities_all,
             "recent_activities": enriched_recent_activities,

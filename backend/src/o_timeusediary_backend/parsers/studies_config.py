@@ -1,5 +1,6 @@
 # config/study_config.py
 from typing import List, Optional, Any
+from datetime import datetime, timezone
 from pydantic import BaseModel, model_validator
 import yaml
 import json
@@ -20,8 +21,8 @@ class CfgFileStudy(BaseModel):
     allow_unlisted_participants: bool = True
     default_language: str = "en" # default to English if not given
     activities_json_file: str
-    data_collection_start: str  # ISO 8601 date string, see validator below
-    data_collection_end: str    # ISO 8601 date string
+    data_collection_start: datetime  # UTC-aware datetime, parsed from ISO 8601 string
+    data_collection_end: datetime    # UTC-aware datetime, parsed from ISO 8601 string
 
     @model_validator(mode='after')
     def validate_name_short(self) -> 'CfgFileStudy':
@@ -45,18 +46,14 @@ class CfgFileStudy(BaseModel):
 
     @model_validator(mode='after')
     def validate_iso8601_dates(self) -> 'CfgFileStudy':
-        # Validate data_collection_start
-        if self.data_collection_start is not None:
-            iso8601_regex = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
-            if not re.match(iso8601_regex, self.data_collection_start):
-                raise ValueError(f'data_collection_start "{self.data_collection_start}" is not in valid ISO 8601 format (e.g., 2024-01-01T00:00:00Z)')
-
-        # Validate data_collection_end
-        if self.data_collection_end is not None:
-            iso8601_regex = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
-            if not re.match(iso8601_regex, self.data_collection_end):
-                raise ValueError(f'data_collection_end "{self.data_collection_end}" is not in valid ISO 8601 format (e.g., 2024-01-01T00:00:00Z)')
-
+        # Ensure both datetimes are UTC-aware.
+        # Pydantic v2 on Python 3.11+ parses ISO 8601 strings with 'Z' suffix
+        # (e.g. "2024-01-01T00:00:00Z") into timezone-aware datetimes automatically.
+        # If somehow a naive datetime slips through, treat it as UTC.
+        if self.data_collection_start is not None and self.data_collection_start.tzinfo is None:
+            self.data_collection_start = self.data_collection_start.replace(tzinfo=timezone.utc)
+        if self.data_collection_end is not None and self.data_collection_end.tzinfo is None:
+            self.data_collection_end = self.data_collection_end.replace(tzinfo=timezone.utc)
         return self
 
     @model_validator(mode='after')

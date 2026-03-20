@@ -2,7 +2,7 @@ from sqlmodel import SQLModel, Field, Relationship, JSON, Column
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
 from pydantic import BaseModel
-from sqlalchemy import Text
+from sqlalchemy import Text, DateTime
 
 from .utils import utc_now
 
@@ -11,7 +11,7 @@ class Participant(SQLModel, table=True):
     __tablename__ = "participants"
 
     id: str = Field(primary_key=True)  # External ID like "bernddasbrot", "annasmith"
-    created_at: datetime = Field(default_factory=utc_now)
+    created_at: datetime = Field(default_factory=utc_now, sa_column=Column(DateTime(timezone=True), nullable=False))
 
     # Relationships
     study_associations: List["StudyParticipant"] = Relationship(back_populates="participant")
@@ -27,9 +27,9 @@ class Study(SQLModel, table=True):
     allow_unlisted_participants: bool = Field(default=True)
     default_language: str = Field(default="en")
     activities_json_url: str
-    data_collection_start: datetime
-    data_collection_end: datetime
-    created_at: datetime = Field(default_factory=utc_now)
+    data_collection_start: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    data_collection_end: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    created_at: datetime = Field(default_factory=utc_now, sa_column=Column(DateTime(timezone=True), nullable=False))
 
     # Relationships
     day_labels: List["DayLabel"] = Relationship(back_populates="study")
@@ -74,7 +74,7 @@ class StudyParticipant(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     study_id: int = Field(foreign_key="studies.id")
     participant_id: str = Field(foreign_key="participants.id")
-    created_at: datetime = Field(default_factory=utc_now)
+    created_at: datetime = Field(default_factory=utc_now, sa_column=Column(DateTime(timezone=True), nullable=False))
 
     # Relationships
     study: Study = Relationship(back_populates="participants")
@@ -102,7 +102,7 @@ class Activity(SQLModel, table=True):
     parent_activity_code: Optional[int] = Field(default=None, index=True)
 
     # Metadata
-    created_at: datetime = Field(default_factory=utc_now)
+    created_at: datetime = Field(default_factory=utc_now, sa_column=Column(DateTime(timezone=True), nullable=False))
 
     # Relationships
     study: Study = Relationship(back_populates="activities")

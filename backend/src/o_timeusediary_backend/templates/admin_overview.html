@@ -361,7 +361,7 @@
                 <div class="stat-label">Activities logged</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value">{{ studies_data|length }}</div>
+                <div class="stat-value">{{ active_studies_count }}</div>
                 <div class="stat-label">Active Studies</div>
             </div>
         </div>
@@ -375,6 +375,7 @@
                     <div><strong>ID:</strong> {{ study_data.study.id }}</div>
                     <div><strong>Participants:</strong> {{ study_data.participant_count }}</div>
                     <div><strong>Activities logged:</strong> {{ study_data.total_activities_logged }}</div>
+                    <div><strong>Currently Collecting Data:</strong> {{ "Yes" if study_data.is_actively_collecting else "No" }}</div>
                     <div><strong>Different Activities in config:</strong> {{ study_data.total_activities_cfg }}</div>
                     <div><strong>Different Categories in config:</strong> {{ study_data.total_categories_cfg }}</div>
                     <div><strong>Created:</strong> {{ study_data.study.created_at.strftime('%Y-%m-%d') }}</div>
