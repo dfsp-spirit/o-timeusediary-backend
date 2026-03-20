@@ -429,8 +429,9 @@
             <div class="tabs">
                 <button class="tab active" onclick="switchTab('timelines-{{ study_data.study.id }}', this)">Timelines ({{ study_data.timeline_stats|length }})</button>
                 <button class="tab" onclick="switchTab('participants-{{ study_data.study.id }}', this)">Participants ({{ study_data.participant_count }})</button>
-                <button class="tab" onclick="switchTab('activities-{{ study_data.study.id }}', this)">Activities ({{ study_data.total_activities_logged }})</button>
+                <button class="tab" onclick="switchTab('activities-{{ study_data.study.id }}', this)">DB Activities ({{ study_data.total_activities_logged }})</button>
                 <button class="tab" onclick="switchTab('daylabels-{{ study_data.study.id }}', this)">Day Labels ({{ study_data.day_labels|length }})</button>
+                <button class="tab" onclick="switchTab('cfgactivities-{{ study_data.study.id }}', this)">Cfg Activities ({{ study_data.total_activities_cfg }})</button>
             </div>
 
             <div class="tab-content">
@@ -517,7 +518,7 @@
                     </div>
                     {% else %}
                     <div class="empty-state">
-                        <p>No activities recorded yet</p>
+                        <p>No activities recorded yet by users in the database for this study.</p>
                     </div>
                     {% endif %}
                 </div>
@@ -544,6 +545,17 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+
+                <!-- Cfg Activities Tab -->
+                <div id="cfgactivities-{{ study_data.study.id }}" class="tab-panel">
+                    <p style="margin-bottom: 0.75rem; color: #6c757d; font-size: 0.9rem;">
+                        Activities defined in the config file for this study.
+                        These are the activities that users can select when filling out their timelines in the app.
+                        Each activity line shows its numeric code followed by its <code>frontend_path</code>.
+                        Child items are indented one level further than their parent.
+                    </p>
+                    <pre style="font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6; background: #f8f9fa; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; white-space: pre; border: 1px solid #e9ecef;">{{ study_data.activities_cfg_text }}</pre>
                 </div>
             </div>
         </div>

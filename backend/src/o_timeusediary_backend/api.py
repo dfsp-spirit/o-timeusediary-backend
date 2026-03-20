@@ -18,7 +18,7 @@ from sqlmodel import Session, select
 from urllib.parse import urlparse
 import sys, argparse
 from fastapi.templating import Jinja2Templates
-from .parsers.activities_config import get_num_categories_in_cfgfile_per_timeline, load_activities_config, get_num_activities_in_cfgfile_per_timeline
+from .parsers.activities_config import get_num_categories_in_cfgfile_per_timeline, load_activities_config, get_num_activities_in_cfgfile_per_timeline, get_activities_cfg_text_for_path
 import secrets
 from .logging_config import setup_logging
 setup_logging()
@@ -876,6 +876,8 @@ async def admin_overview(
                 "min_coverage": timeline.min_coverage
             })
 
+        activities_cfg_text = get_activities_cfg_text_for_path(study.activities_json_url)
+
         studies_data.append({
             "study": study,
             "day_labels": day_labels,
@@ -887,6 +889,7 @@ async def admin_overview(
             "total_activities_logged": total_activities_logged,
             "total_activities_cfg": num_activities_in_cfgfile_total,
             "total_categories_cfg": num_categories_in_cfgfile_total,
+            "activities_cfg_text": activities_cfg_text,  # condensed text view of config-file activities
             "last_activity_time": last_study_activity_time, # when last activity was logged for this study by a user
             "last_activity_time_str_ago": last_activity_time_str_ago, # human readable "3h 15m ago"
             "participant_count": len(participants)

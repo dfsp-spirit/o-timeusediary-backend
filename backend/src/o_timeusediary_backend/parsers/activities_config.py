@@ -315,3 +315,73 @@ def get_num_categories_in_cfgfile_per_timeline(config_path: str) -> Dict[str, in
         timeline_category_counts[timeline_name] = category_count
 
     return timeline_category_counts
+
+
+def compute_activity_path_from_config(
+    timeline_key: str,
+    category_name: str,
+    activity: 'ActivityItem',
+    parent_name: Optional[str] = None
+) -> str:
+    """Compute the frontend_path string for an ActivityItem from the config file.
+
+    Mirrors the logic of compute_activity_path() in api.py, adapted for config-file
+    activities (which have no parent_activity_code, original_selection, etc.).
+
+    @param timeline_key  The timeline key (e.g. 'primary').
+    @param category_name The category name the activity belongs to.
+    @param activity      The ActivityItem.
+    @param parent_name   Parent activity name if this is a child item, otherwise None.
+    @return Path string in the same format as activity_path_frontend on DB rows.
+    """
+    parts = [f"timeline:{timeline_key}"]
+    if category_name and category_name.strip():
+        parts.append(f"category:{category_name}")
+    if parent_name:
+        parts.append(f"parent:{parent_name}")
+    parts.append(f"activity:{activity.name}")
+    return " > ".join(parts)
+
+
+def get_activities_cfg_text(config: ActivitiesConfig) -> str:
+    """Build a condensed multi-line text representation of all activities in the config.
+
+    Format::
+
+        Timeline: primary (Main Activity)
+          Category: General Activities
+            1101  timeline:primary > category:General Activities > activity:Sleeping
+            1104  ...
+          Category: Travel & Transit
+            1110  timeline:primary > category:Travel & Transit > activity:Travelling
+              1111  timeline:primary > category:Travel & Transit > parent:Travelling > activity:Travelling: walking
+
+    Child items are indented one additional level beyond their parent.
+
+    @param config Parsed activities configuration.
+    @return Multi-line string.
+    """
+    lines: List[str] = []
+    for timeline_key, timeline_cfg in config.timeline.items():
+        lines.append(f"Timeline: {timeline_key} ({timeline_cfg.name})")
+        for category in timeline_cfg.categories:
+            lines.append(f"  Category: {category.name}")
+            for activity in category.activities:
+                path = compute_activity_path_from_config(timeline_key, category.name, activity)
+                lines.append(f"    {activity.code}  {path}")
+                for child in activity.childItems:
+                    child_path = compute_activity_path_from_config(
+                        timeline_key, category.name, child, parent_name=activity.name
+                    )
+                    lines.append(f"      {child.code}  {child_path}")
+    return "\n".join(lines)
+
+
+def get_activities_cfg_text_for_path(config_path: str) -> str:
+    """Convenience wrapper: load (cached) config from *config_path* and return its condensed text.
+
+    @param config_path Path to the activities JSON configuration file.
+    @return Multi-line condensed text of all activities.
+    """
+    config = get_cached_activities_config(config_path)
+    return get_activities_cfg_text(config)
