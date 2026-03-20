@@ -358,7 +358,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-value">{{ total_activities_all }}</div>
-                <div class="stat-label">Activities</div>
+                <div class="stat-label">Activities logged</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value">{{ studies_data|length }}</div>
@@ -374,7 +374,7 @@
                 <div class="study-meta">
                     <div><strong>ID:</strong> {{ study_data.study.id }}</div>
                     <div><strong>Participants:</strong> {{ study_data.participant_count }}</div>
-                    <div><strong>Activities:</strong> {{ study_data.total_activities }}</div>
+                    <div><strong>Activities logged:</strong> {{ study_data.total_activities }}</div>
                     <div><strong>Created:</strong> {{ study_data.study.created_at.strftime('%Y-%m-%d') }}</div>
                 </div>
 
@@ -436,7 +436,7 @@
                         <div class="timeline-card">
                             <h3>{{ timeline_stat.display_name }} <span class="badge badge-timeline">{{ timeline_stat.name }}</span></h3>
                             <p><strong>Mode:</strong> {{ timeline_stat.mode }}</p>
-                            <p><strong>Activities:</strong> {{ timeline_stat.activity_count }}</p>
+                            <p><strong>Activities logged:</strong> {{ timeline_stat.activity_count }}</p>
                             {% if timeline_stat.min_coverage %}
                             <p><strong>Min Coverage:</strong> {{ timeline_stat.min_coverage }}%</p>
                             {% endif %}
@@ -525,21 +525,15 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Display Order</th>
-                                    <th>Activity Count</th>
+                                    <th>Display Name</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for day_label in study_data.day_labels %}
-                                {% set day_activity_count = namespace(value=0) %}
-                                {% for activity in study_data.activities_preview %}
-                                    {% if activity.day_label == day_label.name %}
-                                        {% set day_activity_count.value = day_activity_count.value + 1 %}
-                                    {% endif %}
-                                {% endfor %}
                                 <tr>
                                     <td>{{ day_label.name }}</td>
                                     <td>{{ day_label.display_order }}</td>
-                                    <td>{{ day_activity_count.value }} (sample)</td>
+                                    <td>{{ day_label.display_name }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
