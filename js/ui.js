@@ -637,6 +637,23 @@ function updateButtonStates() {
     //console.log('Total timelines:', totalTimelines);
     //console.log('Is last timeline:', isLastTimeline);
 
+    const getCoverageForTimeline = (timelineKey) => {
+        const activities = window.timelineManager.activities[timelineKey] || [];
+        return activities.reduce((total, activity) => {
+            const blockLength = parseInt(activity?.blockLength) || 0;
+            return total + blockLength;
+        }, 0);
+    };
+
+    const allTimelinesMeetMinCoverage = window.timelineManager.keys.every((timelineKey) => {
+        const timelineMetadata = window.timelineManager.metadata[timelineKey];
+        const timelineMinCoverage = parseInt(timelineMetadata?.minCoverage) || 0;
+        const timelineCoverage = getCoverageForTimeline(timelineKey);
+        return timelineCoverage >= timelineMinCoverage;
+    });
+
+    const canProceed = isLastTimeline ? allTimelinesMeetMinCoverage : meetsMinCoverage;
+
     // Get text values for buttons
     const nextTextTopBarButton = 'Next'; //window.i18n ? window.i18n.t('buttons.next') : 'Next Timeline';
     const nextTextLowerSubmitButton = 'Next Timeline'; //window.i18n ? window.i18n.t('buttons.next') : 'Next Timeline';
@@ -647,7 +664,7 @@ function updateButtonStates() {
     if (nextButtonInTopBar) {
         //console.log('Next button before update - disabled:', nextButtonInTopBar.disabled, 'innerHTML:', nextButtonInTopBar.innerHTML);
 
-        nextButtonInTopBar.disabled = !meetsMinCoverage;
+        nextButtonInTopBar.disabled = !canProceed;
 
         if (isLastTimeline) {
             // On last timeline, show Submit
@@ -666,7 +683,7 @@ function updateButtonStates() {
     if (lowerNavSubmitBtn) {
         //console.log('Nav button before update - disabled:', lowerNavSubmitBtn.disabled);
 
-        lowerNavSubmitBtn.disabled = !meetsMinCoverage;
+        lowerNavSubmitBtn.disabled = !canProceed;
 
         // Find the span element inside navSubmitBtn
         const navSubmitIcon = lowerNavSubmitBtn.querySelector('i');
