@@ -380,6 +380,7 @@
                     <div><strong>Different Categories in config:</strong> {{ study_data.total_categories_cfg }}</div>
                     <div><strong>Created:</strong> {{ study_data.study.created_at.strftime('%Y-%m-%d') }}</div>
                     <div><strong>Last Activity Logged:</strong> {{ study_data.last_activity_time.strftime('%Y-%m-%d %H:%M:%S') if study_data.last_activity_time else 'N/A' }}</div>
+                    <div><strong>Last Activity Logged (Ago):</strong> {{ study_data.last_activity_time_str_ago if study_data.last_activity_time_str_ago else 'N/A' }}</div>
                 </div>
 
                 <!-- Export buttons section -->

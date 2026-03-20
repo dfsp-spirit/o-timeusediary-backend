@@ -831,6 +831,14 @@ async def admin_overview(
 
         last_study_activity_time = last_study_activity.created_at if last_study_activity else None
 
+        # create a string like "3h 15m ago" for last_study_activity_time
+        last_activity_time_str_ago = None
+        if last_study_activity_time:
+            time_diff = utc_now() - last_study_activity_time
+            hours, remainder = divmod(int(time_diff.total_seconds()), 3600)
+            minutes, _ = divmod(remainder, 60)
+            last_activity_time_str_ago = f"{hours}h {minutes}m ago"
+
         # Get total activity count for this study in database
         total_activities_logged = session.exec(
             select(func.count(Activity.id))
@@ -880,6 +888,7 @@ async def admin_overview(
             "total_activities_cfg": num_activities_in_cfgfile_total,
             "total_categories_cfg": num_categories_in_cfgfile_total,
             "last_activity_time": last_study_activity_time, # when last activity was logged for this study by a user
+            "last_activity_time_str_ago": last_activity_time_str_ago, # human readable "3h 15m ago"
             "participant_count": len(participants)
         })
 
