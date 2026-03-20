@@ -426,10 +426,10 @@
             </div>
 
             <div class="tabs">
-                <button class="tab active" onclick="switchTab('timelines-{{ study_data.study.id }}', this)">Timelines</button>
+                <button class="tab active" onclick="switchTab('timelines-{{ study_data.study.id }}', this)">Timelines ({{ study_data.timeline_stats|length }})</button>
                 <button class="tab" onclick="switchTab('participants-{{ study_data.study.id }}', this)">Participants ({{ study_data.participant_count }})</button>
                 <button class="tab" onclick="switchTab('activities-{{ study_data.study.id }}', this)">Activities ({{ study_data.total_activities_logged }})</button>
-                <button class="tab" onclick="switchTab('daylabels-{{ study_data.study.id }}', this)">Day Labels</button>
+                <button class="tab" onclick="switchTab('daylabels-{{ study_data.study.id }}', this)">Day Labels ({{ study_data.day_labels|length }})</button>
             </div>
 
             <div class="tab-content">
@@ -444,7 +444,7 @@
                             <p><strong>Different Activities in config:</strong> {{ timeline_stat.activity_count_cfg_file }}</p>
                             <p><strong>Different Categories in config:</strong> {{ timeline_stat.category_count_cfg_file }}</p>
                             {% if timeline_stat.min_coverage %}
-                            <p><strong>Min Coverage:</strong> {{ timeline_stat.min_coverage }}%</p>
+                            <p><strong>Min Coverage:</strong> {{ timeline_stat.min_coverage }} minutes</p>
                             {% endif %}
                             {% if timeline_stat.description %}
                             <p><strong>Description:</strong> {{ timeline_stat.description }}</p>
