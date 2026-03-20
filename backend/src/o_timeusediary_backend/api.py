@@ -834,6 +834,15 @@ async def admin_overview(
                 "created_at": activity.created_at
             })
 
+        last_study_activity = session.exec(
+            select(Activity)
+            .where(Activity.study_id == study.id)
+            .order_by(Activity.created_at.desc())
+            .limit(1)
+        ).first()
+
+        last_study_activity_time = last_study_activity.created_at if last_study_activity else None
+
         # Get total activity count for this study in database
         total_activities_logged = session.exec(
             select(func.count(Activity.id))
@@ -881,6 +890,7 @@ async def admin_overview(
             "total_activities_logged": total_activities_logged,
             "total_activities_cfg": num_activities_in_cfgfile_total,
             "total_categories_cfg": num_categories_in_cfgfile_total,
+            "last_activity_time": last_study_activity_time, # when last activity was logged for this study by a user
             "participant_count": len(participants)
         })
 

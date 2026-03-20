@@ -378,6 +378,7 @@
                     <div><strong>Different Activities in config:</strong> {{ study_data.total_activities_cfg }}</div>
                     <div><strong>Different Categories in config:</strong> {{ study_data.total_categories_cfg }}</div>
                     <div><strong>Created:</strong> {{ study_data.study.created_at.strftime('%Y-%m-%d') }}</div>
+                    <div><strong>Last Activity Logged:</strong> {{ study_data.last_activity_time.strftime('%Y-%m-%d %H:%M:%S') if study_data.last_activity_time else 'N/A' }}</div>
                 </div>
 
                 <!-- Export buttons section -->
@@ -494,13 +495,9 @@
                                     <td>{{ activity.id }}</td>
                                     <td>{{ activity.participant_name }}</td>
                                     <td>{{ activity.day_label }}</td>
-                                    <td>{{ activity.timeline_display_name }}<br><small>{{ activity.timeline }}</small></td>
+                                    <td>{{ activity.timeline }}</td>
                                     <td>
-                                        <strong>{{ activity.activity_name }}</strong><br>
-                                        <small>Code: {{ activity.activity_code }}</small>
-                                        {% if activity.parent_activity_code %}
-                                        <br><small>Parent: {{ activity.parent_activity_code }}</small>
-                                        {% endif %}
+                                        {{ activity.activity_name }} <small>Code: {{ activity.activity_code }}</small><br>
                                         <div class="activity-path">{{ activity.activity_path_frontend }}</div>
                                     </td>
                                     <td class="time-cell">{{ activity.time_range }}</td>
