@@ -117,10 +117,10 @@
     "otherNotListed": "Annat som inte finns med (ange)"
   },
   "thankYou": {
-    "title": "Tack - O-ELIDDI",
+    "title": "Tack - TRAC",
     "heading": "Tack!",
     "subtitle": "Din inskickning har slutförts framgångsrikt.",
-    "message": "Tack för att du deltar i vår <span class=\"app-name\">O-ELIDDI</span>-studie. Dina svar har registrerats och kommer att bidra till värdefull forskning."
+    "message": "Tack för att du deltar i vår <span class=\"app-name\">TRAC</span>-studie. Dina svar har registrerats och kommer att bidra till värdefull forskning."
   },
   "footer": {
     "title": "TRAC",
