@@ -1,6 +1,23 @@
 {
   "instructions": {
+    "pageTitle": "Instruktioner | Tidsdagbok",
     "title": "Instruktioner",
+    "welcomeTitle": "Välkommen till din veckovisa tidsdagbok. Tack för att du deltar!",
+    "generalInfoTitle": "Allmän information om studien",
+    "studyIntroDefault": "Detta är vår tidsanvändningsstudie.<br><br>Vi ber dig att <b>återskapa en typisk vecka</b> av dina dagliga aktiviteter med hjälp av vårt tidsanvändningsverktyg.<br><br>Vilken vecka ska jag välja? Tänk på din senaste vecka (de senaste 7 dagarna).<br>Undantag: Om du var sjuk eller på semester förra veckan, välj en annan nylig vecka som bättre representerar din vanliga rutin.",
+    "timeSavingFeature": "Tidsbesparande funktion: Du behöver inte börja från början varje dag. Efter att du har slutfört den första dagen kopieras ditt schema automatiskt till nästa dag som en mall. Anpassa gärna mallen så att den speglar förändringar i dina aktiviteter den dagen.",
+    "howToFillTitle": "Så fyller du i dagboken",
+    "howToFillDescription": "Du ser en lista med aktiviteter längst ner på skärmen. Du kan dra och släppa dessa aktiviteter på tidslinjen för att visa vad du gjorde under dagen.",
+    "howToFillTwoSteps": "Du fyller i information i två steg för varje dag:",
+    "mainActivityHelp": "<b>Huvudaktivitet (Nivå 1)</b> Dra och släpp aktiviteter från aktivitetslistan till tidslinjen för att visa din huvudaktivitet.",
+    "secondaryActivityHelp": "<b>Sekundär aktivitet (Nivå 2)</b> Använd denna andra tidslinje endast om du gjorde två saker samtidigt. Den är till för aktiviteter som pågick i bakgrunden eller samtidigt med din huvudaktivitet, t.ex.:",
+    "secondaryExamples": {
+      "media": "Mediemultitasking: Om du använde en andra medieform (t.ex. lyssnade på en podd medan du spelade, eller kollade sociala medier medan du tittade på TV).",
+      "other": "Annan multitasking: Om du gjorde en icke-digital aktivitet samtidigt (t.ex. läste medan du pendlade, eller stickade medan du tittade på TV).",
+      "note": "Obs: Om du fokuserade på endast en sak, lämna den här nivån tom för det tidsblocket."
+    },
+    "visualGuideTitle": "Visuella illustrationer av hur du använder gränssnittet",
+    "startPrompt": "Klicka på den blå Starta-knappen för att börja din dagboksregistrering.",
     "mainInstruction": "Tänk på de aktiviteter du gjorde <span class=\"emphasis\">igår</span>. Fyll sedan i hela tidslinjen med de aktiviteter du gjorde.",
     "step1": {
       "title": "Välj och placera en aktivitet",
@@ -20,7 +37,12 @@
     "helpfulTools": "Användbara verktyg",
     "undoHelp": "Gjorde du ett misstag? Ångra din senaste åtgärd",
     "cleanRowHelp": "Vill du börja om? Rensa raden",
-    "customActivityHelp": "Aktiviteten finns inte med? Lägg till en egen aktivitet"
+    "customActivityHelp": "Aktiviteten finns inte med? Lägg till en egen aktivitet",
+    "customActivityName": "Annat som inte finns med (ange)"
+  },
+  "common": {
+    "language": "Språk",
+    "chooseLanguage": "Välj språk"
   },
   "buttons": {
     "submit": "Skicka dagen",
@@ -74,7 +96,13 @@
     "fillRequired": "Fyll i alla obligatoriska aktiviteter",
     "submitSuccess": "Dagbok inskickad framgångsrikt",
     "submitError": "Fel vid inskickning av dagbok",
-    "timelineMissing": "Det saknas information på den här tidslinjen. Vill du lägga till något?"
+    "timelineMissing": "Det saknas information på den här tidslinjen. Vill du lägga till något?",
+    "invalidPlacement": "Kan inte placera aktiviteten här på grund av ogiltig position.",
+    "timelineValidationError": "Valideringsfel i tidslinje: {{message}}",
+    "templateLoadedBanner": "Vi har laddat dina aktiviteter från <strong>{{day}}</strong> som utgångspunkt. Klicka på <strong>'Rensa rad'</strong> för att börja om eller redigera aktiviteterna nedan."
+  },
+  "banner": {
+    "dayOneInstructions": "Instruktioner: Välj först en aktivitet från listan nedan. Klicka sedan på tidslinjen för att placera den och dra i kanterna för att justera längden. För att ta bort en aktivitet på mobil, håll ned den i 2 sekunder. På dator kan du också hovra över den och trycka på tangenten 'd' eller DEL."
   },
   "activities": {
     "otherNotListed": "Annat som inte finns med (ange)"

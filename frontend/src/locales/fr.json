@@ -1,6 +1,23 @@
 {
   "instructions": {
+    "pageTitle": "Instructions | Time Use Diary",
     "title": "Instructions",
+    "welcomeTitle": "Welcome to Your Weekly Time Diary. Thank you for participating!",
+    "generalInfoTitle": "General Information on the Study",
+    "studyIntroDefault": "This is our time use study.<br><br>We are asking you to <b>reconstruct a typical week</b> of your daily activities using our time use tool.<br><br>Which week should I choose? Please think of your past week (the last 7 days).<br>Exception: If you were sick or on holiday last week, please choose a different recent week that better represents your normal routine.",
+    "timeSavingFeature": "Time-Saving Feature: You do not need to start from scratch every day. After you complete the first day, your schedule will automatically copy over to the next day as a template. Please adapt this template to reflect any changes in your activities for that day.",
+    "howToFillTitle": "How to fill out the diary",
+    "howToFillDescription": "You will see a list of activities at the bottom of the screen. You can drag and drop these activities onto the timeline to indicate what you were doing throughout the day.",
+    "howToFillTwoSteps": "You will enter information in two steps for each day:",
+    "mainActivityHelp": "<b>Main Activity (Level 1)</b> Drag and drop activities from the activities list onto the time line to show your main activity.",
+    "secondaryActivityHelp": "<b>Secondary Activity (Level 2)</b> Use this second timeline only if you were doing two things at once. This is for activities that were happening in the background or simultaneously with your Main Activity, e.g.:",
+    "secondaryExamples": {
+      "media": "Media Multitasking: If you were using a second form of media (e.g., listening to a Podcast while Gaming, or checking Social Media while watching TV).",
+      "other": "Other Multitasking: If you were doing a non-digital activity simultaneously (e.g., Reading while Commuting, or Knitting while watching TV).",
+      "note": "Note: If you were focused on only one thing, leave this level blank for that time block."
+    },
+    "visualGuideTitle": "Visual Illustrations of how to use the Interface",
+    "startPrompt": "Please click the blue Start button to begin your diary entry.",
     "mainInstruction": "Pensez aux activités que vous avez faites <span class=\"emphasis\">hier</span>. Ensuite, remplissez la chronologie complète avec les activités que vous avez réalisées.",
     "step1": {
       "title": "Sélectionner et Placer une Activité",
@@ -20,7 +37,12 @@
     "helpfulTools": "Outils utiles",
     "undoHelp": "Avez-vous fait une erreur ? Annulez votre dernière action",
     "cleanRowHelp": "Vous voulez recommencer ? Nettoyez la ligne",
-    "customActivityHelp": "Activité non listée ? Ajoutez une activité personnalisée"
+    "customActivityHelp": "Activité non listée ? Ajoutez une activité personnalisée",
+    "customActivityName": "Autre non listé (entrer)"
+  },
+  "common": {
+    "language": "Language",
+    "chooseLanguage": "Choose language"
   },
   "buttons": {
     "submit": "Soumettre",
@@ -74,7 +96,13 @@
     "fillRequired": "Veuillez remplir toutes les activités requises",
     "submitSuccess": "Journal soumis avec succès",
     "submitError": "Erreur lors de la soumission du journal",
-    "timelineMissing": "Il manque des informations dans cette chronologie. Souhaitez-vous ajouter quelque chose ?"
+    "timelineMissing": "Il manque des informations dans cette chronologie. Souhaitez-vous ajouter quelque chose ?",
+    "invalidPlacement": "Cannot place activity here due to invalid position.",
+    "timelineValidationError": "Timeline validation error: {{message}}",
+    "templateLoadedBanner": "We loaded your activities from <strong>{{day}}</strong> as a starting point. Click <strong>'Empty row'</strong> to start fresh or edit the activities below."
+  },
+  "banner": {
+    "dayOneInstructions": "Usage Instructions: First select an activity from the list below. Then click on the timeline to place it, and drag its borders to extend. To delete an activity on mobile, long-press it for 2 seconds. On desktop, you can also hover over it and press the 'd' key or the DEL key."
   },
   "activities": {
     "otherNotListed": "Autre non listé (entrer)"

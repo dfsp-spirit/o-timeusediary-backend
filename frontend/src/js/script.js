@@ -2851,7 +2851,10 @@ function initTimelineInteraction(timeline) {
 
         if (isNaN(startMinutes) || isNaN(endMinutes)) {
             console.error('Invalid minutes calculation:', { startMinutes, endMinutes });
-            alert('Cannot place activity here due to invalid position.');
+            const invalidPlacementMessage = window.i18n
+                ? window.i18n.t('messages.invalidPlacement')
+                : 'Cannot place activity here due to invalid position.';
+            alert(invalidPlacementMessage);
             return;
         }
 
@@ -3258,12 +3261,11 @@ function showTemplateBanner(templateSourceDay) {
     `;
 
     const text = document.createElement('span');
-    text.innerHTML = `We loaded your activities from <strong>${templateSourceDay}</strong> as a starting point. ` +
-                     `Click <strong>'Empty row'</strong> to start fresh or edit the activities below.`;
+    text.innerHTML = i18n.t('messages.templateLoadedBanner', { day: templateSourceDay });
 
     const closeBtn = document.createElement('button');
     closeBtn.textContent = '×';
-    closeBtn.title = 'Close';
+    closeBtn.title = i18n.t('buttons.close');
     closeBtn.style.cssText = `
         background: none;
         border: none;
@@ -3472,11 +3474,13 @@ function ensureLanguageSelector(supportedLanguages, selectedLanguage) {
     const label = document.createElement('label');
     label.setAttribute('for', 'languageSelectMain');
     label.textContent = 'Language';
+    label.setAttribute('data-i18n', 'common.language');
     label.style.fontSize = '0.85rem';
 
     const select = document.createElement('select');
     select.id = 'languageSelectMain';
     select.setAttribute('aria-label', 'Choose language');
+    select.setAttribute('data-i18n-aria-label', 'common.chooseLanguage');
 
     supportedLanguages.forEach((language) => {
         const option = document.createElement('option');

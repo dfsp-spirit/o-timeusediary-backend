@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>Instructions | Time Use Diary</title>
+    <title data-i18n="instructions.pageTitle">Instructions | Time Use Diary</title>
     <link rel="stylesheet" href="instructions.css">
     <link href="/assets/fonts/inter/inter.css" rel="stylesheet">
     <link rel="stylesheet" href="/assets/fonts/fontawesome/css/all.min.css">
@@ -17,41 +17,38 @@
 </head>
 <body>
     <div>
-        <h1>Welcome to Your Weekly Time Diary Thank you for participating!</h1>
-        <h3>General Information on the Study</h3>
-        <p>
+        <h1 data-i18n="instructions.welcomeTitle">Welcome to Your Weekly Time Diary Thank you for participating!</h1>
+        <h3 data-i18n="instructions.generalInfoTitle">General Information on the Study</h3>
 
+        <div id="study-custom-message-intro" data-i18n-html="instructions.studyIntroDefault">
+            This is our time use study.
+        </div>
 
-We are asking you to <b>reconstruct a typical week</b> of your daily activities using our time use tool.
-<br/><br/>
+        <p data-i18n="instructions.timeSavingFeature">
+            Time-Saving Feature: You do not need to start from scratch every day. After you complete the first day, your schedule will automatically copy over to the next day as a template. Please adapt this template to reflect any changes in your activities for that day.
+        </p>
 
-Which week should I choose? Please think of your past week (the last 7 days).
-Exception: If you were sick or on holiday last week, please choose a different recent week that better represents your normal routine.
-<br/><br/>
-Time-Saving Feature: You do not need to start from scratch every day. After you complete the first day, your schedule will automatically copy over to the next day as a template. Please adapt this template to reflect any changes in your activities for that day.
-<br/><br/>
+        <h4 data-i18n="instructions.howToFillTitle">How to fill out the diary</h4>
 
-<h4>How to fill out the diary</h4>
+        <p data-i18n="instructions.howToFillDescription">
+            You will see a list of activities at the bottom of the screen. You can drag and drop these activities onto the timeline to indicate what you were doing throughout the day.
+        </p>
 
-You will see a list of activities at the bottom of the screen. You can drag and drop these activities onto the timeline to indicate what you were doing throughout the day.
+        <p data-i18n="instructions.howToFillTwoSteps">
+            You will enter information in two steps for each day:
+        </p>
 
-You will enter information in two steps for each day:
-<ul>
+        <ul>
+            <li data-i18n-html="instructions.mainActivityHelp"><b>Main Activity (Level 1)</b> Drag and drop activities from the activities list onto the time line to show your main activity.</li>
+            <li data-i18n-html="instructions.secondaryActivityHelp"><b>Secondary Activity (Level 2)</b> Use this second timeline only if you were doing two things at once. This is for activities that were happening in the background or simultaneously with your Main Activity, e.g.:</li>
+            <ul>
+                <li data-i18n="instructions.secondaryExamples.media">Media Multitasking: If you were using a second form of media (e.g., listening to a Podcast while Gaming, or checking Social Media while watching TV).</li>
+                <li data-i18n="instructions.secondaryExamples.other">Other Multitasking: If you were doing a non-digital activity simultaneously (e.g., Reading while Commuting, or Knitting while watching TV).</li>
+                <li data-i18n="instructions.secondaryExamples.note">Note: If you were focused on only one thing, leave this level blank for that time block.</li>
+            </ul>
+        </ul>
 
-    <li><b>Main Activity (Level 1)</b> Drag and drop activities from the activities list onto the time line to show your main activity.</li>
-
-    <li><b>Secondary Activity (Level 2)</b> Use this second timeline only if you were doing two things at once. This is for activities that were happening in the background or simultaneously with your Main Activity, e.g.:</li>
-
-    <ul>
-        <li>Media Multitasking: If you were using a second form of media (e.g., listening to a Podcast while Gaming, or checking Social Media while watching TV).</li>
-        <li>Other Multitasking: If you were doing a non-digital activity simultaneously (e.g., Reading while Commuting, or Knitting while watching TV).</li>
-        <li>Note: If you were focused on only one thing, leave this level blank for that time block.</li>
-    </ul>
-</ul>
-
-    </p>
-
-        <h2>Visual Illustrations of how to use the Interface</h2>
+        <h2 data-i18n="instructions.visualGuideTitle">Visual Illustrations of how to use the Interface</h2>
         <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px;">
             <div class="instruction-step">
                 <div class="step-number">1</div>
@@ -140,7 +137,7 @@ You will enter information in two steps for each day:
 
         <div>
             <br />
-            <h3>Please click the blue Start button to begin your diary entry.</h3>
+            <h3 data-i18n="instructions.startPrompt">Please click the blue Start button to begin your diary entry.</h3>
             <br /><br />
         </div>
     </div>

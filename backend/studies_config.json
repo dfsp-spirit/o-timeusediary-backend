@@ -14,8 +14,8 @@
           { "name": "sunday", "display_order": 6, "display_names": { "en": "Sunday", "sv": "Söndag" } }
         ],
       "study_text_intro": {
-        "en": "This is our time use study. Please reconstruct a typical week of your daily activities.",
-        "sv": "Detta är vår tidsanvändningsstudie. Vänligen återskapa en typisk vecka av dina dagliga aktiviteter."
+        "en": "This is our time use study for adults. Please reconstruct a typical week of your daily activities.",
+        "sv": "Detta är vår tidsanvändningsstudie för vuxna. Vänligen återskapa en typisk vecka av dina dagliga aktiviteter."
       },
       "study_text_end_completed": {
         "en": "Thanks for filling out this study. Your efforts will contribute to valuable research.",
@@ -49,8 +49,8 @@
           { "name": "sunday", "display_order": 6, "display_names": { "en": "Sunday", "sv": "Sunday" } }
         ],
       "study_text_intro": {
-        "en": "This is our time use study. Please reconstruct a typical week of your daily activities.",
-        "sv": "Detta är vår tidsanvändningsstudie. Vänligen återskapa en typisk vecka av dina dagliga aktiviteter."
+        "en": "This is our time use study for 15 year olds. Please reconstruct a typical week of your daily activities.",
+        "sv": "Detta är vår tidsanvändningsstudie för 15-åringar. Vänligen återskapa en typisk vecka av dina dagliga aktiviteter."
       },
       "study_text_end_completed": {
         "en": "Thanks for filling out this study. Your efforts will contribute to valuable research.",
@@ -83,7 +83,7 @@
           { "name": "saturday", "display_order": 5, "display_names": { "en": "Saturday", "sv": "Lördag" } },
           { "name": "sunday", "display_order": 6, "display_names": { "en": "Sunday", "sv": "Söndag" } }
         ],
-      "study_text_intro": { "en" : "Please fill out this study for your child. You will be asked to report time use for an entire week.", "sv" : "Vänligen fyll i denna studie för ditt barn. Du kommer att bli ombedd att rapportera tidsanvändning för en hel vecka." },
+      "study_text_intro": { "en" : "Please fill out this study for 9 year old children. You will be asked to report time use for an entire week.", "sv" : "Vänligen fyll i denna studie för 9-åringar. Du kommer att bli ombedd att rapportera tidsanvändning för en hel vecka." },
       "study_text_end_completed": { "en" : "Thanks for filling out this study. Your efforts will contribute to valuable research.", "sv" : "Tack för att du fyllde i denna studie. Dina insatser kommer att bidra till värdefull forskning." },
       "study_text_end_skipped": { "en" : "You have skipped filling out the time use part of the study. If you provided some information, we will try to use it. Thank you!", "sv" : "Du har hoppat över att fylla i tidsanvändningsdelen av studien. Om du har lämnat viss information kommer vi att försöka använda den. Tack!" },
       "study_participant_ids": [],

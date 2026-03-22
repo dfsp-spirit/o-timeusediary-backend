@@ -47,6 +47,22 @@ function normalizeDayLabels(study, language = null) {
     });
 }
 
+function resolveLocalizedStudyText(textValue, selectedLanguage, defaultLanguage = 'en') {
+    if (typeof textValue === 'string') {
+        return textValue;
+    }
+
+    if (!textValue || typeof textValue !== 'object') {
+        return null;
+    }
+
+    return textValue[selectedLanguage]
+        || textValue[defaultLanguage]
+        || textValue.en
+        || Object.values(textValue).find((value) => typeof value === 'string')
+        || null;
+}
+
 // Load studies config from JSON file (fallback)
 async function loadStudiesConfigFromFile() {
     try {
@@ -127,16 +143,40 @@ async function syncWithBackendConfig() {
                 CURRENT_STUDY_CACHE.selected_language = backendConfig.selected_language;
             }
 
-            if (typeof backendConfig.study_text_intro === 'string') {
-                CURRENT_STUDY_CACHE.study_text_intro = backendConfig.study_text_intro;
+            const selectedLanguage = backendConfig.selected_language
+                || getLangFromUrl()
+                || CURRENT_STUDY_CACHE.selected_language
+                || CURRENT_STUDY_CACHE.default_language
+                || 'en';
+            const defaultLanguage = backendConfig.default_language
+                || CURRENT_STUDY_CACHE.default_language
+                || 'en';
+
+            const resolvedIntro = resolveLocalizedStudyText(
+                backendConfig.study_text_intro,
+                selectedLanguage,
+                defaultLanguage
+            );
+            if (resolvedIntro) {
+                CURRENT_STUDY_CACHE.study_text_intro = resolvedIntro;
             }
 
-            if (typeof backendConfig.study_text_end_completed === 'string') {
-                CURRENT_STUDY_CACHE.study_text_end_completed = backendConfig.study_text_end_completed;
+            const resolvedCompleted = resolveLocalizedStudyText(
+                backendConfig.study_text_end_completed,
+                selectedLanguage,
+                defaultLanguage
+            );
+            if (resolvedCompleted) {
+                CURRENT_STUDY_CACHE.study_text_end_completed = resolvedCompleted;
             }
 
-            if (typeof backendConfig.study_text_end_skipped === 'string') {
-                CURRENT_STUDY_CACHE.study_text_end_skipped = backendConfig.study_text_end_skipped;
+            const resolvedSkipped = resolveLocalizedStudyText(
+                backendConfig.study_text_end_skipped,
+                selectedLanguage,
+                defaultLanguage
+            );
+            if (resolvedSkipped) {
+                CURRENT_STUDY_CACHE.study_text_end_skipped = resolvedSkipped;
             }
 
             if (backendConfig.study_days_count) {
@@ -222,9 +262,9 @@ function getDayLabel(dayIndex) {
     console.log(`Label at index ${dayIndex}:`, label);
 
     // Handle object format: {name: "default", display_order: 0}
-    if (label && typeof label === 'object' && label.name) {
-        console.log(`Extracting name from object: ${label.name}`);
-        return label.name;
+    if (label && typeof label === 'object' && label.display_name) {
+        console.log(`Extracting display_name from object: ${label.display_name}`);
+        return label.display_name;
     }
 
     // Handle string format (for backward compatibility)
