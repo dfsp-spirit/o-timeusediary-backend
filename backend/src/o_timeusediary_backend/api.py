@@ -19,6 +19,7 @@ from urllib.parse import urlparse
 import sys, argparse
 from fastapi.templating import Jinja2Templates
 from .parsers.activities_config import get_num_categories_in_cfgfile_per_timeline, load_activities_config, get_num_activities_in_cfgfile_per_timeline, get_activities_cfg_text_for_path
+from .parsers.studies_config import get_cfg_study_by_name_short
 import secrets
 from .logging_config import setup_logging
 setup_logging()
@@ -291,6 +292,7 @@ async def redirect_to_docs(request: Request):
 @app.get("/api/studies/{study_name_short}/activities-config")
 def get_study_activities_config(
     study_name_short: str,
+    lang: Optional[str] = Query(None, description="Optional language code for activities config (e.g., 'en', 'sv'). Defaults to study default language."),
     participant_id: Optional[str] = Query(None, description="Participant ID for authorization check. Required unless study is open for everyone."),
     session: Session = Depends(get_session)
 ):
@@ -360,14 +362,24 @@ def get_study_activities_config(
             if not participant:
                 logger.debug(f"Provided participant_id '{participant_id}' doesn't exist for open study '{study_name_short}'")
 
+    cfg_study = get_cfg_study_by_name_short(study_name_short, settings.studies_config_path)
+
+    file_path_for_lang = None
+    if cfg_study:
+        file_path_for_lang = cfg_study.get_activities_json_file_for_language(lang)
+
+    # Fallback to database field (legacy/compatibility)
+    if not file_path_for_lang:
+        file_path_for_lang = study.activities_json_url
+
     # Try to load the activities config from the file
     try:
-        activities_config = load_activities_config(study.activities_json_url)
+        activities_config = load_activities_config(file_path_for_lang)
         return activities_config.dict()
     except FileNotFoundError:
         raise HTTPException(
             status_code=500,
-            detail=f"Activities configuration file not found: {study.activities_json_url}"
+            detail=f"Activities configuration file not found: {file_path_for_lang}"
         )
     except Exception as e:
         logger.error(f"Error loading activities config for study {study_name_short}: {e}")
@@ -1723,6 +1735,11 @@ class StudyConfigResponse(BaseModel):
     data_collection_end: datetime
     default_language: str
     activities_json_url: str
+    supported_languages: List[str]
+    selected_language: str
+    study_text_intro: Optional[str] = None
+    study_text_end_completed: Optional[str] = None
+    study_text_end_skipped: Optional[str] = None
     timelines: List[TimelineConfigResponse]
     day_labels: List[DayLabelConfigResponse]
     study_days_count: int
@@ -1730,6 +1747,7 @@ class StudyConfigResponse(BaseModel):
 @app.get("/api/studies/{study_name_short}/study-config", response_model=StudyConfigResponse)
 def get_study_config(
     study_name_short: str,
+    lang: Optional[str] = Query(None, description="Optional language code for localized day labels/texts. Defaults to study default language."),
     participant_id: Optional[str] = Query(None, description="Participant ID for authorization check. Required unless study is open for everyone."),
     session: Session = Depends(get_session)
 ):
@@ -1797,6 +1815,14 @@ def get_study_config(
             if not participant:
                 logger.debug(f"Provided participant_id '{participant_id}' doesn't exist for open study '{study_name_short}'")
 
+    cfg_study = get_cfg_study_by_name_short(study_name_short, settings.studies_config_path)
+    selected_language = lang or study.default_language
+    supported_languages: List[str] = [study.default_language]
+    if cfg_study:
+        supported_languages = cfg_study.get_supported_languages()
+        if selected_language not in supported_languages:
+            selected_language = study.default_language
+
     # Get all timelines for this study
     timelines = session.exec(
         select(Timeline).where(Timeline.study_id == study.id)
@@ -1821,14 +1847,24 @@ def get_study_config(
         for timeline in timelines
     ]
 
-    day_label_responses = [
-        DayLabelConfigResponse(
-            name=day_label.name,
-            display_order=day_label.display_order,
-            display_name=day_label.display_name
+    day_label_responses = []
+    for day_label in day_labels:
+        display_name = day_label.display_name
+        if cfg_study:
+            localized_display_name = cfg_study.get_day_label_display_name(day_label.name, selected_language)
+            if localized_display_name:
+                display_name = localized_display_name
+        day_label_responses.append(
+            DayLabelConfigResponse(
+                name=day_label.name,
+                display_order=day_label.display_order,
+                display_name=display_name
+            )
         )
-        for day_label in day_labels
-    ]
+
+    study_text_intro = cfg_study.get_study_text("study_text_intro", selected_language) if cfg_study else None
+    study_text_end_completed = cfg_study.get_study_text("study_text_end_completed", selected_language) if cfg_study else None
+    study_text_end_skipped = cfg_study.get_study_text("study_text_end_skipped", selected_language) if cfg_study else None
 
     return StudyConfigResponse(
         study_name=study.name,
@@ -1839,6 +1875,11 @@ def get_study_config(
         data_collection_end=study.data_collection_end,
         default_language=study.default_language,
         activities_json_url=study.activities_json_url,
+        supported_languages=supported_languages,
+        selected_language=selected_language,
+        study_text_intro=study_text_intro,
+        study_text_end_completed=study_text_end_completed,
+        study_text_end_skipped=study_text_end_skipped,
         timelines=timeline_responses,
         day_labels=day_label_responses,
         study_days_count=len(day_labels),

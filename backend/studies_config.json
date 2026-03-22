@@ -5,18 +5,33 @@
       "name_short": "default",
       "description": "Default Study for Adults at KI, filled out by themselves",
       "day_labels": [
-          { "name": "monday", "display_order": 0, "display_name": "Monday" },
-          { "name": "tuesday", "display_order": 1, "display_name": "Tuesday" },
-          { "name": "wednesday", "display_order": 2, "display_name": "Wednesday" },
-          { "name": "thursday", "display_order": 3, "display_name": "Thursday" },
-          { "name": "friday", "display_order": 4, "display_name": "Friday" },
-          { "name": "saturday", "display_order": 5, "display_name": "Saturday" },
-          { "name": "sunday", "display_order": 6, "display_name": "Sunday" }
+          { "name": "monday", "display_order": 0, "display_names": { "en": "Monday", "sv": "Måndag" } },
+          { "name": "tuesday", "display_order": 1, "display_names": { "en": "Tuesday", "sv": "Tisdag" } },
+          { "name": "wednesday", "display_order": 2, "display_names": { "en": "Wednesday", "sv": "Onsdag" } },
+          { "name": "thursday", "display_order": 3, "display_names": { "en": "Thursday", "sv": "Torsdag" } },
+          { "name": "friday", "display_order": 4, "display_names": { "en": "Friday", "sv": "Fredag" } },
+          { "name": "saturday", "display_order": 5, "display_names": { "en": "Saturday", "sv": "Lördag" } },
+          { "name": "sunday", "display_order": 6, "display_names": { "en": "Sunday", "sv": "Söndag" } }
         ],
+      "study_text_intro": {
+        "en": "This is our time use study. Please reconstruct a typical week of your daily activities.",
+        "sv": "Detta är vår tidsanvändningsstudie. Vänligen återskapa en typisk vecka av dina dagliga aktiviteter."
+      },
+      "study_text_end_completed": {
+        "en": "Thanks for filling out this study. Your efforts will contribute to valuable research.",
+        "sv": "Tack för att du fyllde i denna studie. Dina insatser kommer att bidra till värdefull forskning."
+      },
+      "study_text_end_skipped": {
+        "en": "You skipped the time reporting part. If you provided some information, we will try to use it. Thank you!",
+        "sv": "Du hoppade över att fylla i tidsanvändningsdelen av studien. Om du har lämnat viss information kommer vi att försöka använda den. Tack!"
+      },
       "study_participant_ids": [],
       "allow_unlisted_participants": true,
       "default_language": "en",
-      "activities_json_file": "activities_ki_adults_en.json",
+      "activities_json_files": {
+        "en": "activities_ki_adults_en.json",
+        "sv": "activities_ki_adults_sv.json"
+      },
       "data_collection_start": "2024-01-01T00:00:00Z",
       "data_collection_end": "2026-12-31T23:59:59Z"
     },
@@ -25,18 +40,33 @@
       "name_short": "15yearolds",
       "description": "Weekly Study for 15 year olds at KI, filled out by themselves.",
       "day_labels": [
-          { "name": "monday", "display_order": 0, "display_name": "Monday" },
-          { "name": "tuesday", "display_order": 1, "display_name": "Tuesday" },
-          { "name": "wednesday", "display_order": 2, "display_name": "Wednesday" },
-          { "name": "thursday", "display_order": 3, "display_name": "Thursday" },
-          { "name": "friday", "display_order": 4, "display_name": "Friday" },
-          { "name": "saturday", "display_order": 5, "display_name": "Saturday" },
-          { "name": "sunday", "display_order": 6, "display_name": "Sunday" }
+          { "name": "monday", "display_order": 0, "display_names": { "en": "Monday", "sv": "Måndag" } },
+          { "name": "tuesday", "display_order": 1, "display_names": { "en": "Tuesday", "sv": "Tisdag" } },
+          { "name": "wednesday", "display_order": 2, "display_names": { "en": "Wednesday", "sv": "Onsdag" } },
+          { "name": "thursday", "display_order": 3, "display_names": { "en": "Thursday", "sv": "Torsdag" } },
+          { "name": "friday", "display_order": 4, "display_names": { "en": "Friday", "sv": "Fredag" } },
+          { "name": "saturday", "display_order": 5, "display_names": { "en": "Saturday", "sv": "Lördag" } },
+          { "name": "sunday", "display_order": 6, "display_names": { "en": "Sunday", "sv": "Sunday" } }
         ],
+      "study_text_intro": {
+        "en": "This is our time use study. Please reconstruct a typical week of your daily activities.",
+        "sv": "Detta är vår tidsanvändningsstudie. Vänligen återskapa en typisk vecka av dina dagliga aktiviteter."
+      },
+      "study_text_end_completed": {
+        "en": "Thanks for filling out this study. Your efforts will contribute to valuable research.",
+        "sv": "Tack för att du fyllde i denna studie. Dina insatser kommer att bidra till värdefull forskning."
+      },
+      "study_text_end_skipped": {
+        "en": "You skipped the time reporting part. If you provided some information, we will try to use it. Thank you!",
+        "sv": "Du hoppade över att fylla i tidsanvändningsdelen av studien. Om du har lämnat viss information kommer vi att försöka använda den. Tack!"
+      },
       "study_participant_ids": [],
       "allow_unlisted_participants": true,
       "default_language": "en",
-      "activities_json_file": "activities_ki_15yearolds_en.json",
+      "activities_json_files": {
+        "en": "activities_ki_15yearolds_en.json",
+        "sv": "activities_ki_15yearolds_sv.json"
+      },
       "data_collection_start": "2024-01-01T00:00:00Z",
       "data_collection_end": "2026-12-31T23:59:59Z"
     },
@@ -45,18 +75,21 @@
       "name_short": "9yearolds",
       "description": "Weekly Study for 9 year olds at KI, filled out by their parents.",
       "day_labels": [
-          { "name": "monday", "display_order": 0, "display_name": "Monday" },
-          { "name": "tuesday", "display_order": 1, "display_name": "Tuesday" },
-          { "name": "wednesday", "display_order": 2, "display_name": "Wednesday" },
-          { "name": "thursday", "display_order": 3, "display_name": "Thursday" },
-          { "name": "friday", "display_order": 4, "display_name": "Friday" },
-          { "name": "saturday", "display_order": 5, "display_name": "Saturday" },
-          { "name": "sunday", "display_order": 6, "display_name": "Sunday" }
+          { "name": "monday", "display_order": 0, "display_names": { "en": "Monday", "sv": "Måndag" } },
+          { "name": "tuesday", "display_order": 1, "display_names": { "en": "Tuesday", "sv": "Tisdag" } },
+          { "name": "wednesday", "display_order": 2, "display_names": { "en": "Wednesday", "sv": "Onsdag" } },
+          { "name": "thursday", "display_order": 3, "display_names": { "en": "Thursday", "sv": "Torsdag" } },
+          { "name": "friday", "display_order": 4, "display_names": { "en": "Friday", "sv": "Fredag" } },
+          { "name": "saturday", "display_order": 5, "display_names": { "en": "Saturday", "sv": "Lördag" } },
+          { "name": "sunday", "display_order": 6, "display_names": { "en": "Sunday", "sv": "Söndag" } }
         ],
+      "study_text_intro": { "en" : "Please fill out this study for your child. You will be asked to report time use for an entire week.", "sv" : "Vänligen fyll i denna studie för ditt barn. Du kommer att bli ombedd att rapportera tidsanvändning för en hel vecka." },
+      "study_text_end_completed": { "en" : "Thanks for filling out this study. Your efforts will contribute to valuable research.", "sv" : "Tack för att du fyllde i denna studie. Dina insatser kommer att bidra till värdefull forskning." },
+      "study_text_end_skipped": { "en" : "You have skipped filling out the time use part of the study. If you provided some information, we will try to use it. Thank you!", "sv" : "Du har hoppat över att fylla i tidsanvändningsdelen av studien. Om du har lämnat viss information kommer vi att försöka använda den. Tack!" },
       "study_participant_ids": [],
       "allow_unlisted_participants": true,
       "default_language": "en",
-      "activities_json_file": "activities_ki_9yearolds_en.json",
+      "activities_json_files": { "en": "activities_ki_9yearolds_en.json", "sv" : "activities_ki_9yearolds_sv.json" },
       "data_collection_start": "2024-01-01T00:00:00Z",
       "data_collection_end": "2026-12-31T23:59:59Z"
     }

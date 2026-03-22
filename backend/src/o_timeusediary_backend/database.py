@@ -125,13 +125,20 @@ def create_config_file_studies(config_path: str):
                     continue  # Skip to next study
 
                 # Create study
+                default_activities_file = study_config.get_activities_json_file_for_language(study_config.default_language)
+                if not default_activities_file:
+                    raise ValueError(
+                        f"No activities JSON file configured for study '{study_config.name_short}' "
+                        f"and default language '{study_config.default_language}'"
+                    )
+
                 study = Study(
                     name=study_config.name,
                     name_short=study_config.name_short,
                     description=study_config.description,
                     allow_unlisted_participants=study_config.allow_unlisted_participants,
                     default_language=study_config.default_language,
-                    activities_json_url=study_config.activities_json_file,
+                    activities_json_url=default_activities_file,
                     data_collection_start=study_config.data_collection_start,
                     data_collection_end=study_config.data_collection_end
                 )
@@ -139,15 +146,19 @@ def create_config_file_studies(config_path: str):
                 session.commit()  # Commit immediately after each study
 
                 # Load activities config and create related entities
-                activities_config: ActivitiesConfig = load_activities_config(study_config.activities_json_file)
+                activities_config: ActivitiesConfig = load_activities_config(default_activities_file)
 
                 # Create day labels
                 for _, day_label_inst in enumerate(study_config.day_labels):
+                    display_name = study_config.get_day_label_display_name(
+                        day_label_inst.name,
+                        study_config.default_language
+                    )
                     day_label = DayLabel(
                         study_id=study.id,
                         name=day_label_inst.name,
                         display_order=day_label_inst.display_order,
-                        display_name=day_label_inst.display_name
+                        display_name=display_name or day_label_inst.name
                     )
                     session.add(day_label)
 

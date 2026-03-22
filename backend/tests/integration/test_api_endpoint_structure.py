@@ -122,17 +122,38 @@ async def test_study_and_participant_endpoints_are_available_with_expected_struc
             "study_name",
             "study_name_short",
             "allow_unlisted_participants",
+            "default_language",
+            "supported_languages",
+            "selected_language",
             "timelines",
             "day_labels",
             "study_days_count",
         ]:
             assert key in study_cfg
 
+        assert isinstance(study_cfg["supported_languages"], list)
+        assert study_cfg["default_language"] in study_cfg["supported_languages"]
+
+        selected_lang = "sv" if "sv" in study_cfg["supported_languages"] else study_cfg["default_language"]
+        study_cfg_lang_response = await client.get(
+            f"{BASE_URL}/api/studies/{study_name_short}/study-config",
+            params={"lang": selected_lang},
+        )
+        assert study_cfg_lang_response.status_code == 200
+        study_cfg_lang = study_cfg_lang_response.json()
+        assert study_cfg_lang["selected_language"] == selected_lang
+
         activities_cfg_response = await client.get(f"{BASE_URL}/api/studies/{study_name_short}/activities-config")
         assert activities_cfg_response.status_code == 200
         activities_cfg = activities_cfg_response.json()
         for key in ["general", "timeline"]:
             assert key in activities_cfg
+
+        activities_cfg_lang_response = await client.get(
+            f"{BASE_URL}/api/studies/{study_name_short}/activities-config",
+            params={"lang": selected_lang},
+        )
+        assert activities_cfg_lang_response.status_code == 200
 
         participant_activities_response = await client.get(
             f"{BASE_URL}/api/studies/{study_name_short}/participants/{participant_id}/activities",
