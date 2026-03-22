@@ -3309,6 +3309,34 @@ function showTemplateBanner(templateSourceDay) {
 
 }
 
+function resolveDisplayDayLabel(dayLabel) {
+    if (!dayLabel) {
+        return dayLabel;
+    }
+
+    if (typeof dayLabel === 'object') {
+        return dayLabel.display_name || dayLabel.name || String(dayLabel);
+    }
+
+    const studyDayLabels = window.timelineManager?.studyConfig?.day_labels;
+    if (!Array.isArray(studyDayLabels)) {
+        return dayLabel;
+    }
+
+    const matched = studyDayLabels.find((label) => {
+        if (!label || typeof label !== 'object') {
+            return false;
+        }
+        return label.name === dayLabel || label.display_name === dayLabel;
+    });
+
+    if (!matched) {
+        return dayLabel;
+    }
+
+    return matched.display_name || matched.name || dayLabel;
+}
+
 function getCurrentDayIndex() {
     const urlParams = new URLSearchParams(window.location.search);
     return parseInt(urlParams.get('day_label_index')) || 0;
@@ -3550,6 +3578,13 @@ async function init() {
         const studyName = urlParams.get('study_name') || TUD_SETTINGS.STUDY_NAME;
         const selectedLanguage = urlParams.get('lang') || currentStudy.selected_language || currentStudy.default_language || 'en';
 
+        try {
+            await i18n.init(selectedLanguage);
+            i18n.applyTranslations();
+        } catch (i18nPreloadError) {
+            console.warn('Failed to preload i18n before backend config fetch:', i18nPreloadError);
+        }
+
         if (!urlParams.get('lang')) {
             urlParams.set('lang', selectedLanguage);
             window.history.replaceState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
@@ -3586,7 +3621,9 @@ async function init() {
             console.error('Failed to load activities config from backend:', error);
             configLoadBackendSuccess = false;
             if(footerStatus) {
-                    footerStatus.textContent = "Backend error"; // i18n not available yet
+                    footerStatus.textContent = window.i18n && window.i18n.isReady()
+                        ? i18n.t('footer.backend_status_error')
+                        : 'Backend error';
                     footerStatus.style.color = 'red';
             } else {
                 console.warn('Footer status element not found, cannot display backend error status');
@@ -3764,7 +3801,8 @@ async function init() {
 
                         // Show template banner if using template
                         if (transformedData.template_source_day_label) {
-                            showTemplateBanner(transformedData.template_source_day_label);
+                            const displayTemplateDayLabel = resolveDisplayDayLabel(transformedData.template_source_day_label);
+                            showTemplateBanner(displayTemplateDayLabel);
                         }
                     }
 
@@ -3928,18 +3966,26 @@ async function init() {
         }
     } catch (error) {
         console.error('Failed to initialize application:', error);
+        const errorTitle = window.i18n?.isReady()
+            ? i18n.t('errors.loadingActivitiesConfigurationTitle')
+            : 'Error loading activities configuration:';
+        const errorHelp = window.i18n?.isReady()
+            ? i18n.t('errors.loadingActivitiesConfigurationHelp')
+            : 'The application requires a valid backend connection to load the appropriate activities for your study.';
         document.getElementById('activitiesContainer').innerHTML =
             '<p style="color: red; padding: 20px; background: #ffebee; border: 2px solid #ef9a9a; border-radius: 8px; margin: 20px;">' +
-            '<strong>Error loading activities configuration:</strong><br>' + error.message + '<br><br>' +
-            'The application requires a valid backend connection to load the appropriate activities for your study.</p>';
+            `<strong>${errorTitle}</strong><br>${error.message}<br><br>${errorHelp}</p>`;
     }
     updateButtonStates();
 }
 
 init().catch(error => {
     console.error('Failed to initialize application:', error);
+    const shortError = window.i18n?.isReady()
+        ? i18n.t('errors.loadingActivitiesShort')
+        : 'Error loading activities. Please refresh the page to try again. Error:';
     document.getElementById('activitiesContainer').innerHTML =
-        '<p style="color: red;">Error loading activities. Please refresh the page to try again. Error: ' + error.message + '</p>';
+        `<p style="color: red;">${shortError} ${error.message}</p>`;
 });
 
 // Export addNextTimeline, goToPreviousTimeline and renderActivities for ui.js

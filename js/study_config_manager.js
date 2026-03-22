@@ -261,10 +261,11 @@ function getDayLabel(dayIndex) {
     const label = CURRENT_STUDY_CACHE.day_labels[dayIndex];
     console.log(`Label at index ${dayIndex}:`, label);
 
-    // Handle object format: {name: "default", display_order: 0}
-    if (label && typeof label === 'object' && label.display_name) {
-        console.log(`Extracting display_name from object: ${label.display_name}`);
-        return label.display_name;
+    // Handle object format: {name: "monday", display_name: "Monday", ...}
+    // For backend submission endpoints, we must use the stable day label name.
+    if (label && typeof label === 'object' && label.name) {
+        console.log(`Extracting name from object: ${label.name}`);
+        return label.name;
     }
 
     // Handle string format (for backward compatibility)
@@ -277,6 +278,25 @@ function getDayLabel(dayIndex) {
     const fallback = `day_${dayIndex + 1}`;
     console.log(`Using fallback: ${fallback}`);
     return fallback;
+}
+
+// Get display label for a specific day index (UI-facing)
+function getDayDisplayLabel(dayIndex) {
+    if (!CURRENT_STUDY_CACHE || !CURRENT_STUDY_CACHE.day_labels) {
+        return `day_${dayIndex + 1}`;
+    }
+
+    const label = CURRENT_STUDY_CACHE.day_labels[dayIndex];
+
+    if (label && typeof label === 'object') {
+        return label.display_name || label.name || `day_${dayIndex + 1}`;
+    }
+
+    if (typeof label === 'string') {
+        return label;
+    }
+
+    return `day_${dayIndex + 1}`;
 }
 
 // Get number of days in current study
@@ -296,6 +316,7 @@ window.studyConfigManager = {
     initializeStudyConfig,
     syncWithBackendConfig,
     getDayLabel,
+    getDayDisplayLabel,
     getStudyDaysCount
 };
 
@@ -307,5 +328,6 @@ export {
     initializeStudyConfig,
     syncWithBackendConfig,
     getDayLabel,
+    getDayDisplayLabel,
     getStudyDaysCount
 };

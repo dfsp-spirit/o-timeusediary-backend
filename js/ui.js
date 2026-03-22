@@ -265,7 +265,9 @@ function createModal() {
     const numStudyDaysCount = window.studyConfigManager?.getStudyDaysCount() || 1;
     const urlParams = new URLSearchParams(window.location.search);
     const currentDayIndex = parseInt(urlParams.get('day_label_index')) || 0;
-    const dayLabel = window.studyConfigManager?.getDayLabel(currentDayIndex) || `day_${currentDayIndex + 1}`;
+    const dayLabel = window.studyConfigManager?.getDayDisplayLabel(currentDayIndex)
+        || window.studyConfigManager?.getDayLabel(currentDayIndex)
+        || `day_${currentDayIndex + 1}`;
     const isLastStudyDay = currentDayIndex >= numStudyDaysCount - 1;
 
     const studyEndInfo = isLastStudyDay ? ' This submission concludes the study.' : '';
@@ -380,7 +382,7 @@ function createFloatingAddButton() {
     const button = document.createElement('button');
     button.className = 'floating-add-button';
     button.innerHTML = '+';
-    button.title = 'Add Activity';
+    button.title = window.i18n ? window.i18n.t('modals.addActivity.title') : 'Add Activity';
 
     const modal = createModal();
 
@@ -472,11 +474,11 @@ export function updateCurrentDayDisplay() {
                           1;
 
     // Determine day name
-    let dayName = "Day";
+    let dayName = window.i18n ? window.i18n.t('common.day') : 'Day';
     if (dayLabels.length > dayIndex) {
-        dayName = dayLabels[dayIndex].display_name || dayLabels[dayIndex].name || `Day ${dayIndex + 1}`;
+        dayName = dayLabels[dayIndex].display_name || dayLabels[dayIndex].name || `${window.i18n ? window.i18n.t('common.day') : 'Day'} ${dayIndex + 1}`;
     } else {
-        dayName = `Day ${dayIndex + 1}`;
+        dayName = `${window.i18n ? window.i18n.t('common.day') : 'Day'} ${dayIndex + 1}`;
     }
 
     console.log('############################ Current day index:', dayIndex, " Current Day Name:", dayName, 'Total study days:', studyDaysCount);
@@ -563,15 +565,24 @@ export function updateCurrentDayDisplay() {
         }
     }
 
+    const reportingForDayText = window.i18n
+        ? window.i18n.t('messages.reportingForDay')
+        : 'Reporting for day:';
+    const studyDayText = window.i18n
+        ? window.i18n.t('messages.studyDayOf', { current: dayIndex + 1, total: studyDaysCount })
+        : `Study Day ${dayIndex + 1} of ${studyDaysCount}`;
+
     // Update the content
     dayDisplay.innerHTML = `
-        <span>Reporting for day: </span>${' '}
+        <span>${reportingForDayText}</span>${' '}
         <span class="day-name"> ${dayName} </span>
-        <span class="day-index">Study Day ${dayIndex + 1} of ${studyDaysCount}</span>
+        <span class="day-index">${studyDayText}</span>
     `;
 
     // Add title for hover/tap info
-    dayDisplay.title = `Current: ${dayName} (Day ${dayIndex + 1} of ${studyDaysCount})`;
+    dayDisplay.title = window.i18n
+        ? window.i18n.t('messages.currentDayTooltip', { dayName, current: dayIndex + 1, total: studyDaysCount })
+        : `Current: ${dayName} (Day ${dayIndex + 1} of ${studyDaysCount})`;
 
     return dayDisplay;
 }
@@ -655,9 +666,9 @@ function updateButtonStates() {
     const canProceed = isLastTimeline ? allTimelinesMeetMinCoverage : meetsMinCoverage;
 
     // Get text values for buttons
-    const nextTextTopBarButton = 'Next'; //window.i18n ? window.i18n.t('buttons.next') : 'Next Timeline';
-    const nextTextLowerSubmitButton = 'Next Timeline'; //window.i18n ? window.i18n.t('buttons.next') : 'Next Timeline';
-    const submitText = 'Submit Day'; //window.i18n ? window.i18n.t('buttons.submit') : 'Submit Day';
+    const nextTextTopBarButton = window.i18n ? window.i18n.t('buttons.next') : 'Next Timeline';
+    const nextTextLowerSubmitButton = window.i18n ? window.i18n.t('buttons.next') : 'Next Timeline';
+    const submitText = window.i18n ? window.i18n.t('buttons.submit') : 'Submit Day';
 
     //console.log('Button texts - Next:', nextTextTopBarButton, 'Submit:', submitText);
 

@@ -42,7 +42,8 @@
   },
   "common": {
     "language": "Språk",
-    "chooseLanguage": "Välj språk"
+    "chooseLanguage": "Välj språk",
+    "day": "Dag"
   },
   "buttons": {
     "submit": "Skicka dagen",
@@ -99,7 +100,15 @@
     "timelineMissing": "Det saknas information på den här tidslinjen. Vill du lägga till något?",
     "invalidPlacement": "Kan inte placera aktiviteten här på grund av ogiltig position.",
     "timelineValidationError": "Valideringsfel i tidslinje: {{message}}",
-    "templateLoadedBanner": "Vi har laddat dina aktiviteter från <strong>{{day}}</strong> som utgångspunkt. Klicka på <strong>'Rensa rad'</strong> för att börja om eller redigera aktiviteterna nedan."
+    "templateLoadedBanner": "Vi har laddat dina aktiviteter från <strong>{{day}}</strong> som utgångspunkt. Klicka på <strong>'Rensa rad'</strong> för att börja om eller redigera aktiviteterna nedan.",
+    "reportingForDay": "Rapportering för dag:",
+    "studyDayOf": "Studiedag {{current}} av {{total}}",
+    "currentDayTooltip": "Nuvarande: {{dayName}} (Dag {{current}} av {{total}})"
+  },
+  "errors": {
+    "loadingActivitiesConfigurationTitle": "Fel vid laddning av aktivitetskonfiguration:",
+    "loadingActivitiesConfigurationHelp": "Applikationen kräver en giltig backend-anslutning för att ladda rätt aktiviteter för din studie.",
+    "loadingActivitiesShort": "Fel vid laddning av aktiviteter. Uppdatera sidan och försök igen. Fel:"
   },
   "banner": {
     "dayOneInstructions": "Instruktioner: Välj först en aktivitet från listan nedan. Klicka sedan på tidslinjen för att placera den och dra i kanterna för att justera längden. För att ta bort en aktivitet på mobil, håll ned den i 2 sekunder. På dator kan du också hovra över den och trycka på tangenten 'd' eller DEL."
