@@ -16,6 +16,22 @@ function setLanguageInUrl(language) {
     window.history.replaceState({}, '', url.toString());
 }
 
+function resolveLocalizedStudyText(textValue, selectedLanguage, defaultLanguage = 'en') {
+    if (typeof textValue === 'string') {
+        return textValue;
+    }
+
+    if (!textValue || typeof textValue !== 'object') {
+        return '';
+    }
+
+    return textValue[selectedLanguage]
+        || textValue[defaultLanguage]
+        || textValue.en
+        || Object.values(textValue).find((value) => typeof value === 'string')
+        || '';
+}
+
 async function loadStudyConfigForInstructions(language) {
     const urlParams = getUrlParams();
     const studyName = urlParams.get('study_name') || window.TUD_SETTINGS?.STUDY_NAME || 'default';
@@ -61,11 +77,13 @@ function renderLanguageSelector(studyConfig, selectedLanguage) {
     const label = document.createElement('label');
     label.setAttribute('for', 'languageSelect');
     label.textContent = 'Language';
+    label.setAttribute('data-i18n', 'common.language');
     label.style.marginRight = '0.5rem';
 
     const select = document.createElement('select');
     select.id = 'languageSelect';
     select.setAttribute('aria-label', 'Choose language');
+    select.setAttribute('data-i18n-aria-label', 'common.chooseLanguage');
 
     supportedLanguages.forEach((language) => {
         const option = document.createElement('option');
@@ -94,13 +112,21 @@ function renderLanguageSelector(studyConfig, selectedLanguage) {
 }
 
 function applyStudyIntroText(studyConfig) {
+    const selectedLanguage = studyConfig?.selected_language || getCurrentLanguageFromUrl() || 'en';
+    const defaultLanguage = studyConfig?.default_language || 'en';
     const introElement = document.getElementById('study-custom-message-intro');
     if (!introElement) {
         return;
     }
 
-    if (typeof studyConfig?.study_text_intro === 'string' && studyConfig.study_text_intro.trim() !== '') {
-        introElement.innerHTML = studyConfig.study_text_intro;
+    const resolvedText = resolveLocalizedStudyText(
+        studyConfig?.study_text_intro,
+        selectedLanguage,
+        defaultLanguage
+    );
+
+    if (typeof resolvedText === 'string' && resolvedText.trim() !== '') {
+        introElement.innerHTML = resolvedText;
     }
 }
 
@@ -135,7 +161,6 @@ function updateLayout() {
 
         if (studyConfig) {
             renderLanguageSelector(studyConfig, selectedLanguage);
-            applyStudyIntroText(studyConfig);
         }
 
         const activitiesConfig = await loadActivitiesConfig({
@@ -149,6 +174,9 @@ function updateLayout() {
         console.log('Loading language:', language);
         await i18n.init(language);
         i18n.applyTranslations();
+        if (studyConfig) {
+            applyStudyIntroText(studyConfig);
+        }
         console.log('i18n initialized successfully');
     } catch (error) {
         console.error('Error initializing i18n:', error);

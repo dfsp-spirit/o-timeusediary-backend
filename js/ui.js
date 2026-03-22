@@ -898,7 +898,10 @@ function initButtons() {
                 window.timelineManager.metadata[currentKey].validate();
             } catch (error) {
                 console.error('Timeline validation failed:', error);
-                alert('Timeline validation error: ' + error.message);
+                const validationErrorMessage = window.i18n
+                    ? window.i18n.t('messages.timelineValidationError', { message: error.message })
+                    : `Timeline validation error: ${error.message}`;
+                alert(validationErrorMessage);
                 return;
             }
 
