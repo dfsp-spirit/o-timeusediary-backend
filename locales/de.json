@@ -1,0 +1,131 @@
+{
+  "instructions": {
+    "pageTitle": "Anleitung | Zeitnutzungstagebuch",
+    "title": "Anleitung",
+    "welcomeTitle": "Willkommen zu Ihrem wöchentlichen Zeit-Tagebuch. Vielen Dank für Ihre Teilnahme!",
+    "generalInfoTitle": "Allgemeine Informationen zur Studie",
+    "studyIntroDefault": "Dies ist unsere Zeitnutzungsstudie.<br><br>Wir bitten Sie, <b>eine typische Woche</b> Ihrer täglichen Aktivitäten mit unserem Zeitnutzungstool zu rekonstruieren.<br><br>Welche Woche soll ich wählen? Bitte denken Sie an die vergangene Woche (die letzten 7 Tage).<br>Ausnahme: Wenn Sie letzte Woche krank waren oder im Urlaub, wählen Sie bitte eine andere kürzliche Woche, die Ihren normalen Alltag besser widerspiegelt.",
+    "timeSavingFeature": "Zeitsparfunktion: Sie müssen nicht jeden Tag von vorne beginnen. Nachdem Sie den ersten Tag ausgefüllt haben, wird Ihr Zeitplan automatisch als Vorlage für den nächsten Tag übernommen. Bitte passen Sie diese Vorlage an, um Änderungen in Ihren Aktivitäten für diesen Tag widerzuspiegeln.",
+    "howToFillTitle": "So füllen Sie das Tagebuch aus",
+    "howToFillDescription": "Am unteren Bildschirmrand sehen Sie eine Liste von Aktivitäten. Sie können diese per Drag-and-Drop auf die Zeitleiste ziehen, um anzugeben, was Sie im Laufe des Tages gemacht haben.",
+    "howToFillTwoSteps": "Für jeden Tag geben Sie die Informationen in zwei Schritten ein:",
+    "mainActivityHelp": "<b>Hauptaktivität (Level 1)</b> Ziehen Sie Aktivitäten aus der Liste auf die Zeitleiste, um Ihre Hauptaktivität darzustellen.",
+    "secondaryActivityHelp": "<b>Nebenaktivität (Level 2)</b> Verwenden Sie diese zweite Zeitleiste nur, wenn Sie zwei Dinge gleichzeitig getan haben. Dies gilt für Aktivitäten, die im Hintergrund oder gleichzeitig mit Ihrer Hauptaktivität stattfanden, z. B.:",
+    "secondaryExamples": {
+      "media": "Medien-Multitasking: Wenn Sie ein zweites Medium genutzt haben (z. B. einen Podcast hören beim Spielen oder soziale Medien checken beim Fernsehen).",
+      "other": "Sonstiges Multitasking: Wenn Sie gleichzeitig eine nicht-digitale Aktivität ausgeführt haben (z. B. Lesen während des Pendelns oder Stricken beim Fernsehen).",
+      "note": "Hinweis: Wenn Sie sich nur auf eine Sache konzentriert haben, lassen Sie dieses Level für diesen Zeitraum leer."
+    },
+    "visualGuideTitle": "Visuelle Darstellungen zur Nutzung der Oberfläche",
+    "startPrompt": "Bitte klicken Sie auf den blauen Start-Button, um mit Ihrem Tagebucheintrag zu beginnen.",
+    "mainInstruction": "Denken Sie an die Aktivitäten, die Sie <span class=\"emphasis\">gestern</span> ausgeführt haben. Füllen Sie anschließend die gesamte Zeitleiste mit Ihren Aktivitäten aus.",
+    "step1": {
+      "title": "Aktivität auswählen und platzieren",
+      "horizontal": "Wählen Sie eine Aktivität aus dem Menü am unteren Bildschirmrand und platzieren Sie sie auf der Zeitleiste.",
+      "vertical": "Tippen Sie auf die (+)-Schaltfläche unten rechts, um das Aktivitätsmenü zu öffnen, wählen Sie eine Aktivität aus und tippen Sie auf die gewünschte Stelle in der Zeitleiste."
+    },
+    "step2": {
+      "title": "Dauer der Aktivität anpassen",
+      "horizontal": "Klicken und ziehen Sie die Ränder horizontal, um die Dauer festzulegen.",
+      "vertical": "Ziehen Sie die Ränder vertikal, um die Dauer festzulegen."
+    },
+    "step3": {
+      "title": "Tagebuch absenden",
+      "description": "Nachdem Sie alle Aktivitäten des Tages erfasst haben, klicken Sie auf die Schaltfläche „Absenden“, um Ihr Tagebuch abzuschließen.",
+      "submitHelp": "Klicken Sie, um Ihr ausgefülltes Tagebuch abzusenden"
+    },
+    "helpfulTools": "Hilfreiche Werkzeuge",
+    "undoHelp": "Letzte Aktion rückgängig machen",
+    "cleanRowHelp": "Neu beginnen? Zeile leeren",
+    "customActivityHelp": "Aktivität nicht aufgeführt? Eigene Aktivität hinzufügen",
+    "customActivityName": "Sonstiges (eingeben)"
+  },
+  "common": {
+    "language": "Sprache",
+    "chooseLanguage": "Sprache wählen",
+    "day": "Tag"
+  },
+  "buttons": {
+    "submit": "Tag absenden",
+    "start": "Start",
+    "undo": "Rückgängig",
+    "cleanRow": "Zeile leeren",
+    "next": "Nächste Zeitleiste",
+    "skipReporting": "Zeiterfassung überspringen",
+    "back": "Zurück",
+    "backToInstructions": "Zurück zur Anleitung",
+    "ok": "OK",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "close": "Schließen",
+    "confirm": "Bestätigen",
+    "yes": "Ja",
+    "no": "Nein"
+  },
+  "modals": {
+    "customActivity": {
+      "title": "Eigene Aktivität eingeben",
+      "childItemTitle": "Eigenen Wert eingeben für: {parentActivity}",
+      "placeholder": "Geben Sie Ihre Aktivität ein (max. 30 Zeichen)"
+    },
+    "addActivity": {
+      "title": "Aktivität hinzufügen"
+    },
+    "childItems": {
+      "title": "Option auswählen",
+      "titleFor": "Option für \"{activityName}\" auswählen"
+    },
+    "confirmSubmit": {
+      "title": "Diesen Tag absenden?",
+      "message": "Sie können Ihre Antworten für diesen Tag nicht mehr ändern."
+    },
+    "confirmSkip": {
+      "title": "Möchten Sie die Zeiterfassung wirklich überspringen?",
+      "message": "Sie werden direkt zur Dankesseite weitergeleitet."
+    },
+    "loading": {
+      "title": "Ihr Tagebuch wird übermittelt...",
+      "message": "Bitte warten Sie, während Ihre Antworten gespeichert werden."
+    }
+  },
+  "messages": {
+    "loading": "Lädt...",
+    "saving": "Speichert...",
+    "saved": "Erfolgreich gespeichert",
+    "error": "Ein Fehler ist aufgetreten",
+    "noActivities": "Keine Aktivitäten gefunden",
+    "fillRequired": "Bitte füllen Sie alle erforderlichen Aktivitäten aus",
+    "submitSuccess": "Tagebuch erfolgreich übermittelt",
+    "submitError": "Fehler beim Übermitteln des Tagebuchs",
+    "timelineMissing": "In dieser Zeitleiste fehlen noch Angaben. Möchten Sie etwas hinzufügen?",
+    "invalidPlacement": "Aktivität kann aufgrund einer ungültigen Position hier nicht platziert werden.",
+    "timelineValidationError": "Fehler bei der Zeitleistenvalidierung: {{message}}",
+    "templateLoadedBanner": "Wir haben Ihre Aktivitäten von <strong>{{day}}</strong> als Ausgangspunkt geladen. Klicken Sie auf <strong>'Zeile leeren'</strong>, um neu zu beginnen, oder bearbeiten Sie die untenstehenden Aktivitäten.",
+    "reportingForDay": "Bericht für Tag:",
+    "studyDayOf": "Studientag {{current}} von {{total}}",
+    "currentDayTooltip": "Aktuell: {{dayName}} (Tag {{current}} von {{total}})"
+  },
+  "errors": {
+    "loadingActivitiesConfigurationTitle": "Fehler beim Laden der Aktivitätskonfiguration:",
+    "loadingActivitiesConfigurationHelp": "Die Anwendung benötigt eine gültige Backend-Verbindung, um die passenden Aktivitäten für Ihre Studie zu laden.",
+    "loadingActivitiesShort": "Fehler beim Laden der Aktivitäten. Bitte laden Sie die Seite neu und versuchen Sie es erneut. Fehler:"
+  },
+  "banner": {
+    "dayOneInstructions": "Nutzungshinweise: Wählen Sie zuerst eine Aktivität aus der untenstehenden Liste. Klicken Sie dann auf die Zeitleiste, um sie zu platzieren, und ziehen Sie die Ränder, um sie zu verlängern. Um eine Aktivität auf dem Handy zu löschen, halten Sie sie 2 Sekunden lang gedrückt. Auf dem Desktop können Sie auch mit der Maus darüber fahren und die Taste 'd' oder die Entf-Taste drücken."
+  },
+  "activities": {
+    "otherNotListed": "Sonstiges (eingeben)"
+  },
+  "thankYou": {
+    "title": "Vielen Dank - O-ELIDDI",
+    "heading": "Vielen Dank!",
+    "subtitle": "Ihre Übermittlung wurde erfolgreich abgeschlossen.",
+    "message": "Vielen Dank für Ihre Teilnahme an unserer <span class=\"app-name\">O-ELIDDI</span>-Studie. Ihre Antworten wurden gespeichert und tragen zu wertvoller Forschung bei."
+  },
+  "footer": {
+    "title": "TRAC",
+    "backend_status_connecting": "Verbindung zum Backend wird hergestellt...",
+    "backend_status_connected": "Mit Backend verbunden",
+    "backend_status_error": "Fehler bei der Verbindung zum Backend"
+  }
+}
