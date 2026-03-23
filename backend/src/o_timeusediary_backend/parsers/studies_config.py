@@ -7,7 +7,10 @@ import json
 from pathlib import Path
 import re
 from functools import lru_cache
+import logging
 from .activities_config import load_activities_config, get_activity_codes_set
+
+logger = logging.getLogger(__name__)
 
 class CfgFileDayLabel(BaseModel):
     name: str
@@ -159,6 +162,16 @@ class CfgFileStudy(BaseModel):
                     f'{missing_languages}. If an activities file exists for a language, day_labels must also define that language.'
                 )
 
+            extra_languages = sorted(set(display_names.keys()) - required_languages)
+            if extra_languages:
+                logger.warning(
+                    "Study '%s': day label '%s' defines extra translation languages %s without corresponding activities_json_files entries. "
+                    "These languages will not be available in the app.",
+                    self.name_short,
+                    day_label.name,
+                    extra_languages,
+                )
+
         for text_field_name in ["study_text_intro", "study_text_end_completed", "study_text_end_skipped"]:
             text_map = getattr(self, text_field_name, None)
             if text_map is None:
@@ -167,9 +180,12 @@ class CfgFileStudy(BaseModel):
                 raise ValueError(f'{text_field_name} must be an object mapping language codes to text')
             for language, text_value in text_map.items():
                 if language not in required_languages:
-                    raise ValueError(
-                        f'{text_field_name} contains unsupported language "{language}". '
-                        f'Allowed languages are {sorted(required_languages)}'
+                    logger.warning(
+                        "Study '%s': %s defines extra language '%s' without corresponding activities_json_files entry. "
+                        "This language will not be available in the app.",
+                        self.name_short,
+                        text_field_name,
+                        language,
                     )
                 if not isinstance(text_value, str) or text_value.strip() == "":
                     raise ValueError(f'{text_field_name}["{language}"] must be a non-empty string')

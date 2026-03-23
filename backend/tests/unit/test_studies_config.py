@@ -116,3 +116,35 @@ def test_load_studies_config_accepts_matching_activity_code_sets_across_language
 
     config = load_studies_config(str(config_file))
     assert len(config.studies) == 1
+
+
+def test_load_studies_config_warns_for_extra_text_language_without_activities_file(tmp_path, caplog):
+    _write_default_multilingual_activities(tmp_path)
+    payload = _valid_studies_payload()
+    payload["studies"][0]["study_text_intro"] = {
+        "en": "English intro",
+        "sv": "Swedish intro",
+    }
+    payload["studies"][0]["study_text_intro"]["de"] = "Zusätzlicher Text ohne Activities-Datei"
+
+    config_file = tmp_path / "studies_config.json"
+    config_file.write_text(json.dumps(payload), encoding="utf-8")
+
+    config = load_studies_config(str(config_file))
+    assert len(config.studies) == 1
+    assert config.studies[0].get_supported_languages() == ["en", "sv"]
+    assert "extra language 'de'" in caplog.text
+
+
+def test_load_studies_config_warns_for_extra_daylabel_language_without_activities_file(tmp_path, caplog):
+    _write_default_multilingual_activities(tmp_path)
+    payload = _valid_studies_payload()
+    payload["studies"][0]["day_labels"][0]["display_names"]["de"] = "Tag 1"
+
+    config_file = tmp_path / "studies_config.json"
+    config_file.write_text(json.dumps(payload), encoding="utf-8")
+
+    config = load_studies_config(str(config_file))
+    assert len(config.studies) == 1
+    assert config.studies[0].get_supported_languages() == ["en", "sv"]
+    assert "defines extra translation languages ['de']" in caplog.text
