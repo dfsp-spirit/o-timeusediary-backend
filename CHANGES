@@ -5,6 +5,15 @@ TRAC MPIAE Changes
 Current WIP
 -----------
 
+Version 0.9.6 -- Implement full i18n
+-------------------------------------
+* NEW: support several different language versions of activities files, and requesting / sending them to frontend
+* NEW: Remove hard-coded english lang strings in frontend and move to locales/ files
+* NEW: admin interface multi-lang improvements, e.g., allow preview of activities in all available languages
+* BRK: change studies_config format to support multi-lang studies with per-language custom text for intro and thanks-you pages
+* FIX: replace all cloud/CDN access with local copies in src/assets/ dir, implements #46
+
+
 Version 0.9.5 -- Admin interface overhaul II
 ----------------------------------------------
 * NEW: Dramatically improve information in admin interface
