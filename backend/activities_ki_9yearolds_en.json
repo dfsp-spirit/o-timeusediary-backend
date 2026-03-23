@@ -679,12 +679,6 @@
               "code": 2231,
               "examples": "News, articles, e-books, etc",
               "color": "#FFE4B5"
-            },
-            {
-              "name": "Web browsing / Life Administration",
-              "code": 2232,
-              "examples": "General surfing, online shopping, banking, emails, etc",
-              "color": "#FFE4B5"
             }
           ]
         }

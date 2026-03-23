@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import re
 from functools import lru_cache
+from .activities_config import load_activities_config, get_activity_codes_set
 
 class CfgFileDayLabel(BaseModel):
     name: str
@@ -180,6 +181,51 @@ class CfgFileStudies(BaseModel):
     studies: List[CfgFileStudy]
 
 
+def _resolve_activities_path(raw_path: str, base_dir: Path) -> Path:
+    candidate = Path(raw_path)
+    if candidate.is_absolute():
+        return candidate
+    return (base_dir / candidate).resolve()
+
+
+def _validate_multilingual_activity_code_sets(cfg_studies: CfgFileStudies, config_dir: Path) -> None:
+    for study in cfg_studies.studies:
+        files_by_lang = study.get_activities_json_files()
+        if len(files_by_lang) <= 1:
+            continue
+
+        codes_by_lang: Dict[str, set[int]] = {}
+
+        for language, activity_file in sorted(files_by_lang.items()):
+            resolved_path = _resolve_activities_path(activity_file, config_dir)
+            activities_cfg = load_activities_config(str(resolved_path))
+            codes_by_lang[language] = get_activity_codes_set(activities_cfg)
+
+        reference_language = study.default_language if study.default_language in codes_by_lang else sorted(codes_by_lang.keys())[0]
+        reference_codes = codes_by_lang[reference_language]
+
+        mismatch_details: List[str] = []
+        for language, code_set in sorted(codes_by_lang.items()):
+            if language == reference_language:
+                continue
+            if code_set == reference_codes:
+                continue
+
+            missing_vs_reference = sorted(reference_codes - code_set)
+            extra_vs_reference = sorted(code_set - reference_codes)
+            mismatch_details.append(
+                f"language '{language}' differs from '{reference_language}': "
+                f"missing={missing_vs_reference[:20]} extra={extra_vs_reference[:20]}"
+            )
+
+        if mismatch_details:
+            raise ValueError(
+                f"Study '{study.name_short}' has inconsistent activity code sets across languages. "
+                f"All language activity files must define the same set of codes. "
+                + " | ".join(mismatch_details)
+            )
+
+
 def load_studies_config(config_path: str) -> CfgFileStudies:
     """Load studies configuration from YAML or JSON file.
 
@@ -201,7 +247,9 @@ def load_studies_config(config_path: str) -> CfgFileStudies:
     else:
         raise ValueError(f"Unsupported config file format: {config_path.suffix}")
 
-    return CfgFileStudies(**data)
+    cfg_studies = CfgFileStudies(**data)
+    _validate_multilingual_activity_code_sets(cfg_studies, config_path.parent)
+    return cfg_studies
 
 
 @lru_cache(maxsize=1)

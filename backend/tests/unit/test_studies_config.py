@@ -29,7 +29,42 @@ def _valid_studies_payload() -> dict:
     }
 
 
+def _minimal_activities_payload(codes: list[int]) -> dict:
+    return {
+        "general": {"app_name": "TRAC"},
+        "timeline": {
+            "primary": {
+                "name": "Primary",
+                "mode": "single-choice",
+                "categories": [
+                    {
+                        "name": "Main",
+                        "activities": [
+                            {"name": f"Activity {code}", "code": code} for code in codes
+                        ],
+                    }
+                ],
+            }
+        },
+    }
+
+
+def _write_default_multilingual_activities(tmp_path, codes_en: list[int] | None = None, codes_sv: list[int] | None = None):
+    en_codes = codes_en or [100, 200, 300]
+    sv_codes = codes_sv or en_codes
+
+    (tmp_path / "activities_default.json").write_text(
+        json.dumps(_minimal_activities_payload(en_codes)),
+        encoding="utf-8",
+    )
+    (tmp_path / "activities_default.sv.json").write_text(
+        json.dumps(_minimal_activities_payload(sv_codes)),
+        encoding="utf-8",
+    )
+
+
 def test_load_studies_config_from_json(tmp_path):
+    _write_default_multilingual_activities(tmp_path)
     config_file = tmp_path / "studies_config.json"
     config_file.write_text(json.dumps(_valid_studies_payload()), encoding="utf-8")
 
@@ -42,6 +77,7 @@ def test_load_studies_config_from_json(tmp_path):
 
 
 def test_load_studies_config_rejects_invalid_name_short(tmp_path):
+    _write_default_multilingual_activities(tmp_path)
     payload = _valid_studies_payload()
     payload["studies"][0]["name_short"] = "Demo-Study"
 
@@ -53,6 +89,7 @@ def test_load_studies_config_rejects_invalid_name_short(tmp_path):
 
 
 def test_load_studies_config_rejects_missing_daylabel_translation_for_existing_activity_language(tmp_path):
+    _write_default_multilingual_activities(tmp_path)
     payload = _valid_studies_payload()
     payload["studies"][0]["day_labels"][0]["display_names"] = {"en": "Day 1"}
 
@@ -61,3 +98,21 @@ def test_load_studies_config_rejects_missing_daylabel_translation_for_existing_a
 
     with pytest.raises(ValueError, match="missing translated display names"):
         load_studies_config(str(config_file))
+
+
+def test_load_studies_config_rejects_mismatching_activity_code_sets_across_languages(tmp_path):
+    _write_default_multilingual_activities(tmp_path, codes_en=[100, 200], codes_sv=[100, 300])
+    config_file = tmp_path / "studies_config.json"
+    config_file.write_text(json.dumps(_valid_studies_payload()), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="inconsistent activity code sets"):
+        load_studies_config(str(config_file))
+
+
+def test_load_studies_config_accepts_matching_activity_code_sets_across_languages(tmp_path):
+    _write_default_multilingual_activities(tmp_path, codes_en=[100, 200, 300], codes_sv=[100, 200, 300])
+    config_file = tmp_path / "studies_config.json"
+    config_file.write_text(json.dumps(_valid_studies_payload()), encoding="utf-8")
+
+    config = load_studies_config(str(config_file))
+    assert len(config.studies) == 1
