@@ -4,6 +4,10 @@ TRAC MPIAE Changes
 
 Current WIP
 -----------
+* NEW: Add German translation
+* CHG: Allow extra languages for custom texts in studies_config, but warn if translated activitites files are missing and do not consider that language as available, i.e., do not send to frontend for selection dropdown
+* FIX: rename language code 'fn' to 'fi', proper ISO 639-1 language code for Finnish
+
 
 Version 0.9.6 -- Implement full i18n
 -------------------------------------
