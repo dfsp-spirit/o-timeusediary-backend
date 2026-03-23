@@ -196,7 +196,7 @@
                     <option value="{{ study.name_short }}" {% if selected_study and selected_study.name_short == study.name_short %}selected{% endif %}>
                         {{ study.name_short }} - {{ study.name }}
                         {% if study.allow_unlisted_participants %}
-                            (open)
+                            (open: {{ study.participant_count }} participants)
                         {% else %}
                             (closed: {{ study.participant_count }} participants)
                         {% endif %}
