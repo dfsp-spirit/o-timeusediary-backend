@@ -2,11 +2,13 @@ TRAC MPIAE Changes
 ===================
 
 
-Current WIP
------------
+Version 0.9.7 -- DE language support, bug fixes, dev improvements
+-------------------------------------------------------------------
 * NEW: Add German translation
 * CHG: Allow extra languages for custom texts in studies_config, but warn if translated activitites files are missing and do not consider that language as available, i.e., do not send to frontend for selection dropdown
 * FIX: rename language code 'fn' to 'fi', proper ISO 639-1 language code for Finnish
+* FIX: failed backend request on submitting data for a day could leave UI in broken state because it did not properly check for and react to backend submission response
+* NEW: development only: use guvicorn and watchdog as dev servers to better support many concurrent e2e test workers. Also allows to catch bugs during parallel worker startup in dev, e.g., startup functions that are not thread-safe.
 
 
 Version 0.9.6 -- Implement full i18n
