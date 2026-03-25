@@ -1034,6 +1034,7 @@ export async function sendData(options = { mode: 'json', shouldRedirect: false, 
 
         // Hide loading modal after CSV download
         hideLoadingModal();
+        return { success: true };
     } else if (options.mode === 'json') {
         // Create timeline data frame and convert to JSON for download
         const activitiesDataJSON = createTimelineJSON(false);
@@ -1106,12 +1107,14 @@ export async function sendData(options = { mode: 'json', shouldRedirect: false, 
                 console.log('Handling day navigation after successful data submission. isLastDay:', options.isLastDay, 'currentDayIndex:', options.currentDayIndex);
                 await handleDayNavigation(options.isLastDay, options.currentDayIndex);
             }
-            } catch (error) {
-                console.log('Error sending data to backend API, did not receive any response:', String(error));
-                console.log('Is the backend running and accessible at', api_submit_url, '?');
-            }
-
-        hideLoadingModal();
+            return { success: true, data: responseData };
+        } catch (error) {
+            console.error('Error sending data to backend API, did not receive any response:', error);
+            console.log('Is the backend running and accessible at', api_submit_url, '?');
+            return { success: false, error: error?.message || String(error) };
+        } finally {
+            hideLoadingModal();
+        }
 
     } else {
         throw new Error(`Unsupported send mode: ${options.mode}`);
