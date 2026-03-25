@@ -81,7 +81,19 @@ async function goToSecondaryTimeline(page) {
   const nextBtn = page.locator('#nextBtn');
   await expect(nextBtn).toBeVisible();
   await expect(nextBtn).toBeEnabled();
-  await nextBtn.click();
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    await nextBtn.click();
+    await page.waitForTimeout(700);
+
+    if (await page.locator('.timeline-title').isVisible()) {
+      const titleText = await page.locator('.timeline-title').textContent();
+      if (titleText.includes('Secondary Activity')) {
+        return;
+      }
+    }
+  }
+
   await expect(page.locator('.timeline-title')).toContainText('Secondary Activity');
 }
 

@@ -68,7 +68,8 @@ fi
 
 
 ## Start the FastAPI backend in the foreground
+# note that --reload requires the python package 'watchdog' to be installed, which is included in the dev dependencies.
 
-cd "$CURRENT_DIR/backend/" && uv run uvicorn o_timeusediary_backend.api:app --reload --host 127.0.0.1 --port 8000 || { echo -e " Failed to start FastAPI backend"; exit 1; }
+cd "$CURRENT_DIR/backend/" && uv run gunicorn --reload -c ../deployment/gunicorn_conf.dev.py o_timeusediary_backend.api:app || { echo -e " Failed to start FastAPI backend"; exit 1; }
 
 

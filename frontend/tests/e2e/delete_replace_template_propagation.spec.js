@@ -163,6 +163,26 @@ async function submitCurrentDay(page, expectedNextDayName) {
   });
 }
 
+async function waitForTimelineStateCounts(page, { primaryMin = 1, secondaryMin = 1 } = {}) {
+  await expect
+    .poll(async () => {
+      const counts = await page.evaluate(() => {
+        const primary = window.timelineManager.activities.primary || [];
+        const secondary = window.timelineManager.activities.secondary || [];
+        return {
+          primaryCount: primary.length,
+          secondaryCount: secondary.length,
+        };
+      });
+
+      return counts.primaryCount >= primaryMin && counts.secondaryCount >= secondaryMin;
+    }, {
+      timeout: 10000,
+      message: 'Waiting for next-day timeline state to finish loading',
+    })
+    .toBeTruthy();
+}
+
 async function deleteActivityByIdUsingDeleteKey(page, timelineKey, activityId) {
   await switchToTimelineKey(page, timelineKey);
 
@@ -204,6 +224,7 @@ test('delete template activity on Tuesday, replace same slot, and propagate corr
   expect(mondaySecondary.timelineKey).toBe('secondary');
 
   await submitCurrentDay(page, 'Tuesday');
+  await waitForTimelineStateCounts(page);
 
   const tuesdayInitial = await page.evaluate(() => {
     const primary = window.timelineManager.activities.primary || [];
@@ -235,6 +256,7 @@ test('delete template activity on Tuesday, replace same slot, and propagate corr
 
   await switchToTimelineKey(page, 'secondary');
   await submitCurrentDay(page, 'Wednesday');
+  await waitForTimelineStateCounts(page);
 
   const wednesdayState = await page.evaluate(() => {
     const primary = window.timelineManager.activities.primary || [];

@@ -74,29 +74,19 @@ async function goToSecondaryTimeline(page) {
   const nextBtn = page.locator('#nextBtn');
   await expect(nextBtn).toBeVisible();
   await expect(nextBtn).toBeEnabled();
-
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    await nextBtn.click();
-    await page.waitForTimeout(700); // Account for button debounce
-
-    const currentKey = await page.evaluate(() => window.timelineManager.keys[window.timelineManager.currentIndex]);
-    if (currentKey === 'secondary') {
-      return;
-    }
-  }
+  await nextBtn.click();
 
   await expect
     .poll(async () => page.evaluate(() => window.timelineManager.keys[window.timelineManager.currentIndex]), {
       timeout: 10000,
-      message: 'Waiting to switch to secondary timeline after retries',
+      message: 'Waiting to switch to secondary timeline',
     })
     .toBe('secondary');
 }
 
-async function submitCurrentDay(page, expectedNextDayName) {
+async function openSubmitConfirmation(page) {
   const nextBtn = page.locator('#nextBtn');
   const confirmationModal = page.locator('#confirmationModal');
-  const currentDayDisplay = page.locator('#currentDayDisplay');
 
   await expect(nextBtn).toBeVisible();
   await expect(nextBtn).toBeEnabled();
@@ -105,24 +95,37 @@ async function submitCurrentDay(page, expectedNextDayName) {
     await nextBtn.click();
 
     if (await confirmationModal.isVisible()) {
-      await page.locator('#confirmOk').click();
-      break;
-    }
-
-    const title = (await currentDayDisplay.getAttribute('title')) || '';
-    if (title.includes(expectedNextDayName)) {
-      break;
+      return;
     }
 
     await page.waitForTimeout(700);
   }
 
-  await expect(currentDayDisplay).toHaveAttribute('title', new RegExp(expectedNextDayName), {
-    timeout: 30000,
-  });
+  await expect(confirmationModal).toBeVisible();
 }
 
-test('day2 template keeps both timelines populated and separated', async ({ page }) => {
+test('failed submit keeps last timeline submittable for immediate retry', async ({ page }) => {
+  let submitAttempts = 0;
+
+  await page.route('**/studies/**/participants/**/day_labels/**/activities', async (route) => {
+    submitAttempts += 1;
+
+    if (submitAttempts === 1) {
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ detail: 'temporary submit failure' }),
+      });
+      return;
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true }),
+    });
+  });
+
   await page.goto('index.html?study_name=default&lang=en', { waitUntil: 'domcontentloaded' });
 
   await expect(page).toHaveURL(/pages\/instructions\.html/);
@@ -130,67 +133,52 @@ test('day2 template keeps both timelines populated and separated', async ({ page
   await page.locator('#continueBtn').click();
   await expect(page).toHaveURL(/index\.html/);
 
-  await expect(page.locator('#currentDayDisplay')).toHaveAttribute('title', /Monday/);
-
   await addActivityAtPercent(page, { code: 1101, percent: 70 });
-
   await goToSecondaryTimeline(page);
   await addActivityAtPercent(page, { code: null, percent: 10 });
 
-  await submitCurrentDay(page, 'Tuesday');
+  const nextBtn = page.locator('#nextBtn');
+  const navSubmitBtn = page.locator('#navSubmitBtn');
+  const confirmationModal = page.locator('#confirmationModal');
+  const loadingModal = page.locator('#loadingModal');
+  const currentDayDisplay = page.locator('#currentDayDisplay');
+
+  await expect(nextBtn).toBeEnabled();
+  await expect(navSubmitBtn).toBeEnabled();
+
+  await openSubmitConfirmation(page);
+  await page.locator('#confirmOk').click();
 
   await expect
-    .poll(async () => page.locator('.timeline-container').count(), {
-      timeout: 30000,
-      message: 'Waiting for both timelines on day 2',
+    .poll(async () => submitAttempts, {
+      timeout: 10000,
+      message: 'Waiting for the first submit attempt',
+    })
+    .toBe(1);
+
+  await expect(loadingModal).toBeHidden({ timeout: 10000 });
+  await expect(page.locator('.toast.error')).toContainText(/Error submitting diary/i);
+  await expect(nextBtn).toBeEnabled();
+  await expect(navSubmitBtn).toBeEnabled();
+
+  await expect
+    .poll(async () => page.evaluate(() => window.timelineManager.keys[window.timelineManager.currentIndex]), {
+      timeout: 10000,
+      message: 'Current timeline should remain the last timeline after failed submit',
+    })
+    .toBe('secondary');
+
+  await openSubmitConfirmation(page);
+  await page.locator('#confirmOk').click();
+
+  await expect
+    .poll(async () => submitAttempts, {
+      timeout: 10000,
+      message: 'Waiting for the retry submit attempt',
     })
     .toBe(2);
 
-  const day2State = await page.evaluate(() => {
-    const data = window.timelineManager.activities;
-    const primary = data.primary || [];
-    const secondary = data.secondary || [];
-
-    return {
-      primaryCount: primary.length,
-      secondaryCount: secondary.length,
-      primaryIntegrity: primary.every((a) => a.timelineKey === 'primary'),
-      secondaryIntegrity: secondary.every((a) => a.timelineKey === 'secondary'),
-    };
+  await expect(currentDayDisplay).toHaveAttribute('title', /Tuesday/, {
+    timeout: 30000,
   });
-
-  expect(day2State.primaryCount).toBeGreaterThan(0);
-  expect(day2State.secondaryCount).toBeGreaterThan(0);
-  expect(day2State.primaryIntegrity).toBeTruthy();
-  expect(day2State.secondaryIntegrity).toBeTruthy();
-
-  await goToSecondaryTimeline(page);
-
-  await expect
-    .poll(async () => {
-      return page.evaluate(() => {
-        const key = window.timelineManager.keys[window.timelineManager.currentIndex];
-        const timelineEl = document.getElementById(key);
-        const visibleBlocks = timelineEl ? timelineEl.querySelectorAll('.activity-block').length : 0;
-        const dataBlocks = (window.timelineManager.activities[key] || []).length;
-        return { key, visibleBlocks, dataBlocks };
-      });
-    }, {
-      timeout: 10000,
-      message: 'Secondary timeline should keep template activities visible and in state',
-    })
-    .toMatchObject({ key: 'secondary' });
-
-  const secondaryState = await page.evaluate(() => {
-    const key = window.timelineManager.keys[window.timelineManager.currentIndex];
-    const timelineEl = document.getElementById(key);
-    return {
-      key,
-      visibleBlocks: timelineEl ? timelineEl.querySelectorAll('.activity-block').length : 0,
-      dataBlocks: (window.timelineManager.activities[key] || []).length,
-    };
-  });
-
-  expect(secondaryState.visibleBlocks).toBeGreaterThan(0);
-  expect(secondaryState.dataBlocks).toBeGreaterThan(0);
 });

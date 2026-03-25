@@ -36,6 +36,7 @@ build-backend = "hatchling.build"
 dev = [
     "httpx>=0.28.1",
     "pytest-asyncio>=1.3.0",
+    "watchdog>=4.0.0",
 ]
 
 [tool.hatch.build.targets.wheel]

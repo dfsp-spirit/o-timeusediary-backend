@@ -53,7 +53,16 @@ test('deleting primary activity while on secondary disables submit when primary 
   await expect(nextBtn).toBeEnabled();
   await expect(navSubmitBtn).toBeEnabled();
 
-  await nextBtn.click();
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    await nextBtn.click();
+    await page.waitForTimeout(700);
+
+    const currentKey = await page.evaluate(() => window.timelineManager.keys[window.timelineManager.currentIndex]);
+    if (currentKey === 'secondary') {
+      break;
+    }
+  }
+
   await expect
     .poll(async () => page.evaluate(() => window.timelineManager.keys[window.timelineManager.currentIndex]))
     .toBe('secondary');

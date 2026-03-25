@@ -291,9 +291,19 @@ function createModal() {
         confirmationModal.style.cssText = 'display: none !important';
     });
 
-    confirmationModal.querySelector('#confirmOk').addEventListener('click', () => {
+    confirmationModal.querySelector('#confirmOk').addEventListener('click', async () => {
         confirmationModal.style.cssText = 'display: none !important';
         showLoadingModal();
+
+        const nextButton = document.getElementById('nextBtn');
+        const navSubmitButton = document.getElementById('navSubmitBtn');
+
+        if (nextButton) {
+            nextButton.disabled = true;
+        }
+        if (navSubmitButton) {
+            navSubmitButton.disabled = true;
+        }
 
         // Get current day index
         const urlParams = new URLSearchParams(window.location.search);
@@ -302,14 +312,21 @@ function createModal() {
         const isLastDay = currentDayIndex >= totalDays - 1;
 
         // Send data with redirect flag
-        sendData({
+        const result = await sendData({
             mode: 'json',
             shouldRedirect: true,
             isLastDay: isLastDay,
             currentDayIndex: currentDayIndex
         });
 
-        document.getElementById('nextBtn').disabled = true;
+        if (!result?.success) {
+            const submitErrorMessage = window.i18n
+                ? window.i18n.t('messages.submitError')
+                : 'Error submitting diary';
+            const errorDetails = result?.error ? `: ${result.error}` : '';
+            showToast(`${submitErrorMessage}${errorDetails}`, 'error', 5000);
+            updateButtonStates();
+        }
     });
 
     const skipConfirmationModal = document.createElement('div');

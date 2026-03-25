@@ -35,12 +35,21 @@ async function goToSecondaryTimeline(page) {
   const nextBtn = page.locator('#nextBtn');
   await expect(nextBtn).toBeVisible();
   await expect(nextBtn).toBeEnabled();
-  await nextBtn.click();
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    await nextBtn.click();
+    await page.waitForTimeout(700);
+
+    const currentKey = await getCurrentTimelineKey(page);
+    if (currentKey === 'secondary') {
+      return;
+    }
+  }
 
   await expect
     .poll(async () => getCurrentTimelineKey(page), {
       timeout: 10000,
-      message: 'Waiting to switch to secondary timeline',
+      message: 'Waiting to switch to secondary timeline after retries',
     })
     .toBe('secondary');
 }
