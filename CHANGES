@@ -28,7 +28,7 @@ Version 0.9.5 -- Admin interface overhaul II
 * NEW: development only: add test scripts, make e2e test more robust to slower loading on CI
 
 
-Version 0.9.4 -- More frontend corncer case fixes, UX improvements and tests
+Version 0.9.4 -- More frontend corner case fixes, UX improvements and tests
 ----------------------------------------------------------------------------
 * NEW: keep timeline height identical, no matter whether active or not, to prevent visual jumping on selecting the other one
 * NEW: make it clearer which timelines is active/editable by adding frame
