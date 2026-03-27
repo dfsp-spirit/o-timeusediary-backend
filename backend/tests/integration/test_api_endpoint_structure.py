@@ -187,6 +187,7 @@ async def test_admin_endpoints_are_available_with_auth_and_expected_structure(pr
         )
         assert admin_response.status_code == 200
         assert "text/html" in admin_response.headers.get("Content-Type", "")
+        assert f"{settings.rootpath.rstrip('/')}/api/admin/export/studies-runtime-config" in admin_response.text
 
         export_response = await client.get(
             f"{BASE_URL}/api/admin/export/{study_name_short}/activities",
