@@ -1137,12 +1137,25 @@ async def export_runtime_studies_config(
         f" for study '{study_name}'" if study_name else " for all studies",
     )
 
-    return {
+    response_payload = {
         "studies_config": {
             "studies": exported_studies,
         },
         "activities": activities_by_study,
     }
+
+    export_date = utc_now().strftime("%Y-%m-%d")
+    if study_name:
+        filename = f"studies_config_{study_name}_{export_date}.json"
+    else:
+        filename = f"studies_config_{export_date}.json"
+
+    return JSONResponse(
+        content=response_payload,
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        },
+    )
 
 
 @app.get("/admin/participant-management", name="Admin Participant Management Page", response_class=HTMLResponse)

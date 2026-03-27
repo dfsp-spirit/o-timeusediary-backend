@@ -445,6 +445,11 @@
                             📥 CSV Clean (No activities)
                         </span>
                     {% endif %}
+                        <a href="{{ request.scope.root_path }}/api/admin/export/studies-runtime-config?study_name={{ study_data.study.name_short }}"
+                           download="studies_config_{{ study_data.study.name_short }}_{{ current_time.strftime('%Y-%m-%d') }}.json"
+                           class="export-btn"
+                           style="display: inline-block; padding: 0.5rem 1rem; background: #4f46e5; color: white; text-decoration: none; border-radius: 4px; font-size: 0.9rem; font-weight: 500; transition: background 0.2s;">
+                            📥 Runtime Config JSON
                         </a>
                     </div>
                 </div>
@@ -651,6 +656,7 @@
                 <p>Download the current runtime studies configuration export for all studies, including participants, logged activities, and activities configuration definitions.</p>
                 <div class="export-buttons" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e9ecef;">
                     <a href="{{ request.scope.root_path }}/api/admin/export/studies-runtime-config"
+                              download="studies_config_{{ current_time.strftime('%Y-%m-%d') }}.json"
                        class="export-btn"
                        style="display: inline-block; padding: 0.5rem 1rem; background: #4f46e5; color: white; text-decoration: none; border-radius: 4px; font-size: 0.9rem; font-weight: 500; transition: background 0.2s;">
                         📥 Download Runtime Config (All Studies)
