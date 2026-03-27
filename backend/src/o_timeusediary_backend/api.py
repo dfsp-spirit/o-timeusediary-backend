@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Request, status, Response, Depends, Query
+from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from fastapi.responses import JSONResponse
@@ -1016,8 +1017,11 @@ async def export_runtime_studies_config(
     """Export runtime study setup as a studies_config-like structure plus activities definitions.
 
     The export contains two top-level keys:
-    - studies_config: compatible studies list with runtime participant IDs and logged activities by study day
+    - studies_config: compatible studies list with runtime participant IDs and logged activities by participant and study day
     - activities: map keyed by study_name_short with the loaded activities.json content per language
+
+    Note:
+    - participant IDs are random external IDs and are used as object keys in participant-grouped maps.
     """
     study_query = select(Study).order_by(Study.name_short)
     if study_name:
@@ -1075,13 +1079,21 @@ async def export_runtime_studies_config(
             .order_by(DayLabel.display_order, Activity.participant_id, Activity.start_minutes)
         ).all()
 
-        logged_activities: Dict = {day_label.name: [] for day_label in day_labels}
-        ratings: Dict = {day_label.name: [] for day_label in day_labels}
+        day_keys = [day_label.name for day_label in day_labels]
+        logged_activities: Dict = {
+            participant_id: {day_key: [] for day_key in day_keys}
+            for participant_id in participant_ids
+        }
+
         for activity, day_label, timeline in activity_rows:
+            participant_key = activity.participant_id
             day_key = day_label.name
-            logged_activities[day_key].append(
+
+            if participant_key not in logged_activities:
+                logged_activities[participant_key] = {day_name: [] for day_name in day_keys}
+
+            logged_activities[participant_key][day_key].append(
                 {
-                    "participant_id": activity.participant_id,
                     "activity_code": activity.activity_code,
                     "timeline": timeline.name,
                     "start_minutes": activity.start_minutes,
@@ -1115,8 +1127,7 @@ async def export_runtime_studies_config(
                 "study_text_end_skipped": study_text_end_skipped,
                 "data_collection_start": study.data_collection_start,
                 "data_collection_end": study.data_collection_end,
-                "logged_activities": logged_activities,
-                "ratings": ratings,
+                "logged_activities_by_participant_id": logged_activities,
             }
         )
 
@@ -1151,7 +1162,7 @@ async def export_runtime_studies_config(
         filename = f"studies_config_{export_date}.json"
 
     return JSONResponse(
-        content=response_payload,
+        content=jsonable_encoder(response_payload),
         headers={
             "Content-Disposition": f"attachment; filename={filename}"
         },

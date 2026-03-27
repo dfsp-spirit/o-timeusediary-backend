@@ -14,7 +14,7 @@ engine = create_engine(settings.database_url)
 
 def create_db_and_tables(do_report_contents: bool = False):
     SQLModel.metadata.create_all(engine)
-    create_config_file_studies(settings.studies_config_path)
+    create_config_file_studies_in_database(settings.studies_config_path)
     if do_report_contents:
         report_on_db_contents()
 
@@ -106,8 +106,8 @@ def get_timelines_for_study(study_id: int) -> list[Timeline]:
         return timelines
 
 
-def create_config_file_studies(config_path: str):
-    """Create studies from configuration file"""
+def create_config_file_studies_in_database(config_path: str):
+    """Create studies in the database based on info in the studies_config.json configuration file"""
 
     studies_config: CfgFileStudies = load_studies_config(config_path)
     logger.info(f"Checking whether studies need to be created based on config file at '{config_path}'")

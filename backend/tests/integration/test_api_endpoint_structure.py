@@ -212,7 +212,9 @@ async def test_admin_endpoints_are_available_with_auth_and_expected_structure(pr
         assert len(runtime_config_export_data["studies_config"]["studies"]) == 1
 
         exported_study = runtime_config_export_data["studies_config"]["studies"][0]
-        for key in ["name", "name_short", "logged_activities", "ratings", "study_participant_ids"]:
+        for key in ["name", "name_short", "logged_activities_by_participant_id", "study_participant_ids"]:
             assert key in exported_study
+
+        assert "logged_activities_by_participant_id" in exported_study
 
         assert study_name_short in runtime_config_export_data["activities"]
