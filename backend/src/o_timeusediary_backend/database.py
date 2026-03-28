@@ -150,8 +150,8 @@ def create_config_file_studies_in_database(config_path: str):
                         raise ValueError(
                             "Invalid studies_config JSON for study "
                             f"'{study_config.name_short}': closed study has logged activities for unauthorized participants "
-                            f"{unauthorized_participants}. All participant IDs in activities_logged_by_userid / "
-                            "logged_activities_by_participant_id must be listed in study_participant_ids."
+                            f"{unauthorized_participants}. All participant IDs in activities_logged_by_userid "
+                            "must be listed in study_participant_ids."
                         )
 
                 invalid_codes = []
@@ -182,22 +182,19 @@ def create_config_file_studies_in_database(config_path: str):
                 if invalid_days:
                     raise ValueError(
                         "Invalid studies_config JSON for study "
-                        f"'{study_config.name_short}': unknown day labels in activities_logged_by_userid / "
-                        f"logged_activities_by_participant_id: {invalid_days[:10]}"
+                        f"'{study_config.name_short}': unknown day labels in activities_logged_by_userid: {invalid_days[:10]}"
                     )
 
                 if invalid_timelines:
                     raise ValueError(
                         "Invalid studies_config JSON for study "
-                        f"'{study_config.name_short}': unknown timelines in activities_logged_by_userid / "
-                        f"logged_activities_by_participant_id: {invalid_timelines[:10]}"
+                        f"'{study_config.name_short}': unknown timelines in activities_logged_by_userid: {invalid_timelines[:10]}"
                     )
 
                 if invalid_codes:
                     raise ValueError(
                         "Invalid studies_config JSON for study "
-                        f"'{study_config.name_short}': activity codes in activities_logged_by_userid / "
-                        "logged_activities_by_participant_id are missing in the study default-language activities file "
+                        f"'{study_config.name_short}': activity codes in activities_logged_by_userid are missing in the study default-language activities file "
                         f"('{default_activities_file}'). Invalid entries: {invalid_codes[:10]}"
                     )
 

@@ -1,7 +1,7 @@
 # config/study_config.py
 from typing import List, Optional, Any, Dict, Union
 from datetime import datetime, timezone
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, model_validator, Field
 import yaml
 import json
 from pathlib import Path
@@ -28,35 +28,12 @@ class CfgFileDayLabel(BaseModel):
         return {}
 
 
-class CfgFileLoggedActivityItem(BaseModel):
+class CfgFileLoggedActivity(BaseModel):
     timeline: str
-    activity_code: int = Field(ge=0)
-    start_minutes: int = Field(ge=0, le=1440)
-    end_minutes: int = Field(ge=0, le=1440)
+    activity_code: int
+    start_minutes: int
+    end_minutes: int
 
-    @model_validator(mode='before')
-    @classmethod
-    def normalize_legacy_keys(cls, values: Any) -> Any:
-        if not isinstance(values, dict):
-            return values
-
-        data = dict(values)
-
-        if "activity_code" not in data and "code" in data:
-            data["activity_code"] = data["code"]
-
-        if "timeline" not in data and "timeline_key" in data:
-            data["timeline"] = data["timeline_key"]
-
-        return data
-
-    @model_validator(mode='after')
-    def validate_time_range(self) -> 'CfgFileLoggedActivityItem':
-        if self.end_minutes <= self.start_minutes:
-            raise ValueError(
-                f"end_minutes ({self.end_minutes}) must be greater than start_minutes ({self.start_minutes})"
-            )
-        return self
 
 class CfgFileStudy(BaseModel):
     name: str
@@ -73,8 +50,7 @@ class CfgFileStudy(BaseModel):
     study_text_end_skipped: Optional[Dict[str, str]] = None
     data_collection_start: datetime  # UTC-aware datetime, parsed from ISO 8601 string
     data_collection_end: datetime    # UTC-aware datetime, parsed from ISO 8601 string
-    activities_logged_by_userid: Dict[str, Dict[str, List[CfgFileLoggedActivityItem]]] = {}
-    logged_activities_by_participant_id: Dict[str, Dict[str, List[CfgFileLoggedActivityItem]]] = {}
+    activities_logged_by_userid: Dict[str, Dict[str, List[CfgFileLoggedActivity]]] = Field(default_factory=dict)
 
     def get_activities_json_files(self) -> Dict[str, str]:
         if isinstance(self.activities_json_files, dict) and self.activities_json_files:
@@ -115,12 +91,8 @@ class CfgFileStudy(BaseModel):
             return None
         return text_map.get(target_language) or text_map.get(self.default_language) or text_map.get("en")
 
-    def get_logged_activities_by_participant(self) -> Dict[str, Dict[str, List[CfgFileLoggedActivityItem]]]:
-        if self.logged_activities_by_participant_id:
-            return self.logged_activities_by_participant_id
-        if self.activities_logged_by_userid:
-            return self.activities_logged_by_userid
-        return {}
+    def get_logged_activities_by_participant(self) -> Dict[str, Dict[str, List[CfgFileLoggedActivity]]]:
+        return self.activities_logged_by_userid
 
     @model_validator(mode='after')
     def validate_name_short(self) -> 'CfgFileStudy':

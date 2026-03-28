@@ -1127,7 +1127,7 @@ async def export_runtime_studies_config(
                 "study_text_end_skipped": study_text_end_skipped,
                 "data_collection_start": study.data_collection_start,
                 "data_collection_end": study.data_collection_end,
-                "logged_activities_by_participant_id": logged_activities,
+                "activities_logged_by_userid": logged_activities,
             }
         )
 
