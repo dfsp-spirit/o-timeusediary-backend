@@ -267,118 +267,158 @@ function deleteActivityBlock(activityBlock) {
 }
 
 function initMobileDelete() {
-    if (!getIsMobile()) return;
+    const LONG_PRESS_DURATION = 1200;
+    const LONG_PRESS_VISUAL_DELAY = 400;
+    const LONG_PRESS_MOVE_PX = 6;
 
-    let touchStartTime = 0;
-    let touchTimer = null;
-    let touchedActivity = null;
-    let isMouseDown = false; // Track mouse state for desktop testing
+    let pressedActivity = null;
+    let pressTimer = null;
+    let pressStartTime = 0;
+    let pressStartX = 0;
+    let pressStartY = 0;
+    let visualFrame = null;
+    let pointerId = null;
+    let deleteTriggered = false;
 
-    // Handle BOTH mouse and touch events
-    document.addEventListener('mousedown', handlePressStart);
-    document.addEventListener('touchstart', handlePressStart, { passive: false });
+    document.addEventListener('pointerdown', handlePressStart, { passive: false });
+    document.addEventListener('pointermove', handlePressMove, { passive: true });
+    document.addEventListener('pointerup', handlePressEnd, { passive: true });
+    document.addEventListener('pointercancel', handlePressCancel, { passive: true });
 
-    document.addEventListener('mousemove', handlePressMove);
-    document.addEventListener('touchmove', handlePressMove, { passive: false });
+    function getOrCreateLongPressIndicator(activityBlock) {
+        let indicator = activityBlock.querySelector('.long-press-delete-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.className = 'long-press-delete-indicator';
+            activityBlock.appendChild(indicator);
+        }
+        return indicator;
+    }
 
-    document.addEventListener('mouseup', handlePressEnd);
-    document.addEventListener('touchend', handlePressEnd);
-    document.addEventListener('touchcancel', handlePressCancel);
+    function updateVisualProgress() {
+        if (!pressedActivity || deleteTriggered) {
+            visualFrame = null;
+            return;
+        }
+
+        const elapsed = Date.now() - pressStartTime;
+        const visualWindow = LONG_PRESS_DURATION - LONG_PRESS_VISUAL_DELAY;
+        const progress = Math.max(0, Math.min(1, (elapsed - LONG_PRESS_VISUAL_DELAY) / visualWindow));
+        const indicator = getOrCreateLongPressIndicator(pressedActivity);
+
+        if (progress > 0) {
+            indicator.style.opacity = '1';
+            indicator.style.setProperty('--long-press-progress', String(progress));
+        } else {
+            indicator.style.opacity = '0';
+            indicator.style.setProperty('--long-press-progress', '0');
+        }
+
+        visualFrame = requestAnimationFrame(updateVisualProgress);
+    }
+
+    function clearPressTimer() {
+        if (pressTimer) {
+            clearTimeout(pressTimer);
+            pressTimer = null;
+        }
+    }
+
+    function clearVisualFrame() {
+        if (visualFrame) {
+            cancelAnimationFrame(visualFrame);
+            visualFrame = null;
+        }
+    }
+
+    function cleanupPress() {
+        clearPressTimer();
+        clearVisualFrame();
+
+        if (pressedActivity) {
+            pressedActivity.classList.remove('long-press-delete-armed');
+            const indicator = pressedActivity.querySelector('.long-press-delete-indicator');
+            if (indicator) {
+                indicator.style.opacity = '0';
+                indicator.style.setProperty('--long-press-progress', '0');
+            }
+        }
+
+        pressedActivity = null;
+        pointerId = null;
+        deleteTriggered = false;
+    }
 
     function handlePressStart(e) {
-        // Find activity block
+        if (e.button != null && e.button !== 0) {
+            return;
+        }
+
         const activityBlock = e.target.closest('.activity-block');
-        if (!activityBlock) return;
+        if (!activityBlock) {
+            return;
+        }
 
-        // Only allow editing the currently active timeline
-        if (activityBlock.dataset.timelineKey !== getCurrentTimelineKey()) return;
+        if (activityBlock.dataset.timelineKey !== getCurrentTimelineKey()) {
+            return;
+        }
 
-        // Prevent default for touch events
-        if (e.type === 'touchstart') {
+        if (e.pointerType === 'touch') {
             e.preventDefault();
         }
 
-        touchedActivity = activityBlock;
-        touchStartTime = Date.now();
-        isMouseDown = (e.type === 'mousedown');
+        cleanupPress();
 
-        // Add visual feedback immediately
-        activityBlock.style.transform = 'scale(0.98)';
-        activityBlock.style.boxShadow = '0 0 0 2px #f44336';
+        pressedActivity = activityBlock;
+        pressStartTime = Date.now();
+        pressStartX = e.clientX;
+        pressStartY = e.clientY;
+        pointerId = e.pointerId;
 
-        // Start long-press timer
-        touchTimer = setTimeout(() => {
-            // Add stronger visual feedback
-            activityBlock.style.transform = 'scale(0.95)';
-            activityBlock.style.opacity = '0.8';
-            activityBlock.style.boxShadow = '0 0 0 3px #f44336, 0 0 10px #f44336';
+        pressedActivity.classList.add('long-press-delete-armed');
+        const indicator = getOrCreateLongPressIndicator(pressedActivity);
+        indicator.style.opacity = '0';
+        indicator.style.setProperty('--long-press-progress', '0');
 
-            // Wait a moment for user feedback, then delete
-            setTimeout(() => {
-                if (activityBlock.parentNode) {
-                    deleteActivityBlock(activityBlock);
-                }
-            }, 150);
-        }, 800); // 800ms long press
+        pressTimer = setTimeout(() => {
+            if (!pressedActivity) {
+                return;
+            }
+            deleteTriggered = true;
+            const blockToDelete = pressedActivity;
+            cleanupPress();
+            if (blockToDelete.isConnected) {
+                deleteActivityBlock(blockToDelete);
+            }
+        }, LONG_PRESS_DURATION);
+
+        updateVisualProgress();
     }
 
     function handlePressMove(e) {
-        // Cancel if user moves during long press
-        if (touchTimer) {
-            clearTimeout(touchTimer);
-            touchTimer = null;
+        if (!pressedActivity || pointerId !== e.pointerId) {
+            return;
+        }
+
+        const deltaX = e.clientX - pressStartX;
+        const deltaY = e.clientY - pressStartY;
+        if (Math.hypot(deltaX, deltaY) > LONG_PRESS_MOVE_PX) {
             cleanupPress();
         }
     }
 
     function handlePressEnd(e) {
-        if (touchTimer) {
-            clearTimeout(touchTimer);
-            touchTimer = null;
-        }
-
-        // Check if it was a short press/tap (not long press)
-        const pressDuration = Date.now() - touchStartTime;
-        if (pressDuration < 300 && touchedActivity) {
-            // It was a short click/tap - let existing click handlers handle it
-            // But we need to reset our visual changes first
-            cleanupPress();
-
-            // For mouse, we might need to trigger the original click
-            if (e.type === 'mouseup' && isMouseDown) {
-                // Create and dispatch a click event at the same position
-                const clickEvent = new MouseEvent('click', {
-                    bubbles: true,
-                    cancelable: true,
-                    clientX: e.clientX,
-                    clientY: e.clientY
-                });
-                e.target.dispatchEvent(clickEvent);
-            }
-        } else {
-            // Was a longer press or movement
-            cleanupPress();
-        }
-
-        isMouseDown = false;
-    }
-
-    function handlePressCancel() {
-        if (touchTimer) {
-            clearTimeout(touchTimer);
-            touchTimer = null;
+        if (pointerId !== e.pointerId) {
+            return;
         }
         cleanupPress();
-        isMouseDown = false;
     }
 
-    function cleanupPress() {
-        if (touchedActivity) {
-            touchedActivity.style.transform = '';
-            touchedActivity.style.opacity = '';
-            touchedActivity.style.boxShadow = '';
-            touchedActivity = null;
+    function handlePressCancel(e) {
+        if (pointerId !== e.pointerId) {
+            return;
         }
+        cleanupPress();
     }
 }
 
