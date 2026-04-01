@@ -103,7 +103,8 @@
     "templateLoadedBanner": "Latasimme toimintosi päivästä <strong>{{day}}</strong> lähtökohdaksi. Klikkaa <strong>'Tyhjennä rivi'</strong> aloittaaksesi alusta tai muokkaa alla olevia toimintoja.",
     "reportingForDay": "Raportointi päivälle:",
     "studyDayOf": "Tutkimuspäivä {{current}} / {{total}}",
-    "currentDayTooltip": "Nykyinen: {{dayName}} (päivä {{current}} / {{total}})"
+    "currentDayTooltip": "Nykyinen: {{dayName}} (päivä {{current}} / {{total}})",
+    "goBackToEditPreviousDays": "Palaa muokkaamaan aiempia päiviä"
   },
   "errors": {
     "loadingActivitiesConfigurationTitle": "Virhe toimintojen konfiguraation latauksessa:",

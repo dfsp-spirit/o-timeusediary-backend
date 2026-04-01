@@ -103,7 +103,8 @@
     "templateLoadedBanner": "Vi har laddat dina aktiviteter från <strong>{{day}}</strong> som utgångspunkt. Klicka på <strong>'Rensa rad'</strong> för att börja om eller redigera aktiviteterna nedan.",
     "reportingForDay": "Rapportering för dag:",
     "studyDayOf": "Studiedag {{current}} av {{total}}",
-    "currentDayTooltip": "Nuvarande: {{dayName}} (Dag {{current}} av {{total}})"
+    "currentDayTooltip": "Nuvarande: {{dayName}} (Dag {{current}} av {{total}})",
+    "goBackToEditPreviousDays": "Gå tillbaka för att redigera tidigare dagar"
   },
   "errors": {
     "loadingActivitiesConfigurationTitle": "Fel vid laddning av aktivitetskonfiguration:",

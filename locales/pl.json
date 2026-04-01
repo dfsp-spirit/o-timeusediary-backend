@@ -103,7 +103,8 @@
     "templateLoadedBanner": "Załadowaliśmy Twoje aktywności z dnia <strong>{{day}}</strong> jako punkt wyjścia. Kliknij <strong>'Wyczyść rząd'</strong>, aby zacząć od nowa lub edytuj poniższe aktywności.",
     "reportingForDay": "Raportowanie dla dnia:",
     "studyDayOf": "Dzień badania {{current}} z {{total}}",
-    "currentDayTooltip": "Aktualny: {{dayName}} (Dzień {{current}} z {{total}})"
+    "currentDayTooltip": "Aktualny: {{dayName}} (Dzień {{current}} z {{total}})",
+    "goBackToEditPreviousDays": "Wróć, aby edytować poprzednie dni"
   },
   "errors": {
     "loadingActivitiesConfigurationTitle": "Błąd przy ładowaniu konfiguracji aktywności:",
