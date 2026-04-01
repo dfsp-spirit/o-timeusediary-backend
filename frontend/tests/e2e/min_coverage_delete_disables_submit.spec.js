@@ -35,7 +35,7 @@ async function placeSingleActivity(page) {
   await expect(page.locator('.timeline-container[data-active="true"] .activity-block')).toHaveCount(1);
 }
 
-test('deleting primary activity while on secondary disables submit when primary min coverage is no longer met', async ({ page }) => {
+test('deleting activity on inactive timeline is ignored - block survives and submit stays enabled', async ({ page }) => {
   await page.goto('index.html?study_name=default&lang=en', { waitUntil: 'domcontentloaded' });
 
   await expect(page).toHaveURL(/pages\/instructions\.html/);
@@ -48,11 +48,13 @@ test('deleting primary activity while on secondary disables submit when primary 
   await expect(nextBtn).toBeDisabled();
   await expect(navSubmitBtn).toBeDisabled();
 
+  // Place an activity on the primary (first) timeline
   await placeSingleActivity(page);
 
   await expect(nextBtn).toBeEnabled();
   await expect(navSubmitBtn).toBeEnabled();
 
+  // Navigate to the secondary timeline
   for (let attempt = 0; attempt < 4; attempt += 1) {
     await nextBtn.click();
     await page.waitForTimeout(700);
@@ -67,17 +69,55 @@ test('deleting primary activity while on secondary disables submit when primary 
     .poll(async () => page.evaluate(() => window.timelineManager.keys[window.timelineManager.currentIndex]))
     .toBe('secondary');
 
+  // Submit should still be enabled (primary has sufficient coverage)
   await expect(nextBtn).toBeEnabled();
   await expect(navSubmitBtn).toBeEnabled();
 
+  // Hover over the primary activity block (now on an inactive timeline) and press Delete
   const primaryBlockWhileSecondaryActive = page.locator('.timeline-container:has(#primary) .activity-block').first();
   await expect(primaryBlockWhileSecondaryActive).toBeVisible();
 
   await primaryBlockWhileSecondaryActive.hover();
   await page.keyboard.press('Delete');
 
-  await expect(page.locator('.timeline-container:has(#primary) .activity-block')).toHaveCount(0);
+  // Block must still be present — deletion on inactive timelines is not allowed
+  await expect(page.locator('.timeline-container:has(#primary) .activity-block')).toHaveCount(1);
 
+  // Submit buttons must remain enabled — primary coverage is unchanged
+  await expect(nextBtn).toBeEnabled();
+  await expect(navSubmitBtn).toBeEnabled();
+});
+
+test('deleting activity on active timeline removes it and can disable submit', async ({ page }) => {
+  await page.goto('index.html?study_name=default&lang=en', { waitUntil: 'domcontentloaded' });
+
+  await expect(page).toHaveURL(/pages\/instructions\.html/);
+  await page.locator('#continueBtn').click();
+  await expect(page).toHaveURL(/index\.html/);
+
+  const nextBtn = page.locator('#nextBtn');
+  const navSubmitBtn = page.locator('#navSubmitBtn');
+
+  await expect(nextBtn).toBeDisabled();
+  await expect(navSubmitBtn).toBeDisabled();
+
+  // Place an activity on the primary (active) timeline
+  await placeSingleActivity(page);
+
+  await expect(nextBtn).toBeEnabled();
+  await expect(navSubmitBtn).toBeEnabled();
+
+  // Hover over the block while primary is still the active timeline and delete it
+  const primaryBlock = page.locator('.timeline-container[data-active="true"] .activity-block').first();
+  await expect(primaryBlock).toBeVisible();
+
+  await primaryBlock.hover();
+  await page.keyboard.press('Delete');
+
+  // Block must be gone
+  await expect(page.locator('.timeline-container[data-active="true"] .activity-block')).toHaveCount(0);
+
+  // Submit buttons must now be disabled (min coverage no longer met)
   await expect(nextBtn).toBeDisabled();
   await expect(navSubmitBtn).toBeDisabled();
 });
