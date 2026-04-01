@@ -1876,6 +1876,188 @@ def get_participant_day_activities(
     }
 
 
+@app.post("/api/template-activities")
+def copy_cross_user_template_activities(
+    study: str = Query(..., description="Study short name"),
+    source_user: str = Query(..., description="Participant ID to copy template activities from"),
+    target_user: str = Query(..., description="Participant ID to copy template activities to"),
+    session: Session = Depends(get_session)
+):
+    """
+    Copy all activities from source_user to target_user for a study, writing them directly into
+    the database.  Days for which target_user already has activities are skipped, making the
+    operation idempotent.  For open studies the target participant record and study association
+    are created automatically on first call.
+
+    Validation rules:
+    - `study` must exist
+    - `source_user` must exist as participant
+    - If study is closed (`allow_unlisted_participants=False`), `target_user` must already be
+      assigned to the study
+
+    @param study Study short name.
+    @param source_user Source participant ID.
+    @param target_user Target participant ID.
+    @param session Database session dependency.
+    @returns Summary of copied and skipped days/activities.
+    """
+    from collections import defaultdict
+
+    # Validate study exists
+    study_obj = session.exec(
+        select(Study).where(Study.name_short == study)
+    ).first()
+    if not study_obj:
+        raise HTTPException(status_code=404, detail=f"Study '{study}' not found")
+
+    # Validate source participant exists
+    source_participant = session.exec(
+        select(Participant).where(Participant.id == source_user)
+    ).first()
+    if not source_participant:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Source participant '{source_user}' not found"
+        )
+
+    # For closed studies, source and target must be assigned to this study
+    if not study_obj.allow_unlisted_participants:
+        source_association = session.exec(
+            select(StudyParticipant).where(
+                StudyParticipant.study_id == study_obj.id,
+                StudyParticipant.participant_id == source_user
+            )
+        ).first()
+        if not source_association:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Source participant '{source_user}' is not authorized for study '{study}'"
+            )
+
+        target_association = session.exec(
+            select(StudyParticipant).where(
+                StudyParticipant.study_id == study_obj.id,
+                StudyParticipant.participant_id == target_user
+            )
+        ).first()
+        if not target_association:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Target participant '{target_user}' is not authorized for closed study '{study}'"
+            )
+    else:
+        # Open study: auto-create Participant and StudyParticipant for target_user if needed
+        target_participant = session.exec(
+            select(Participant).where(Participant.id == target_user)
+        ).first()
+        if not target_participant:
+            target_participant = Participant(id=target_user)
+            session.add(target_participant)
+            session.flush()
+
+        target_study_assoc = session.exec(
+            select(StudyParticipant).where(
+                StudyParticipant.study_id == study_obj.id,
+                StudyParticipant.participant_id == target_user
+            )
+        ).first()
+        if not target_study_assoc:
+            target_study_assoc = StudyParticipant(
+                study_id=study_obj.id,
+                participant_id=target_user
+            )
+            session.add(target_study_assoc)
+            session.flush()
+
+    # Fetch all source activities
+    source_activities = session.exec(
+        select(Activity)
+        .where(
+            Activity.study_id == study_obj.id,
+            Activity.participant_id == source_user,
+        )
+        .order_by(Activity.day_label_id, Activity.start_minutes, Activity.timeline_id)
+    ).all()
+
+    # Find which day_label_ids target_user already has activities for → skip those
+    target_day_label_ids_with_data: set = set(session.exec(
+        select(Activity.day_label_id)
+        .where(
+            Activity.study_id == study_obj.id,
+            Activity.participant_id == target_user,
+        )
+    ).all())
+
+    # Group source activities by day_label_id
+    source_by_day: dict = defaultdict(list)
+    for activity in source_activities:
+        source_by_day[activity.day_label_id].append(activity)
+
+    source_day_label_ids = set(source_by_day.keys())
+    days_to_copy = source_day_label_ids - target_day_label_ids_with_data
+    days_to_skip = source_day_label_ids & target_day_label_ids_with_data
+
+    # Insert copied activities for each day that has no existing target data
+    total_activities_copied = 0
+    for day_label_id in days_to_copy:
+        for src in source_by_day[day_label_id]:
+            new_activity = Activity(
+                study_id=study_obj.id,
+                participant_id=target_user,
+                day_label_id=src.day_label_id,
+                timeline_id=src.timeline_id,
+                activity_code=src.activity_code,
+                start_minutes=src.start_minutes,
+                end_minutes=src.end_minutes,
+                activity_name=src.activity_name,
+                activity_path_frontend=src.activity_path_frontend,
+                color=src.color,
+                category=src.category,
+                parent_activity_code=src.parent_activity_code,
+            )
+            session.add(new_activity)
+            total_activities_copied += 1
+
+    session.commit()
+
+    # Resolve display_order indices for the response
+    copied_day_indices: list = []
+    skipped_day_indices: list = []
+    all_relevant_ids = days_to_copy | days_to_skip
+    if all_relevant_ids:
+        day_labels = session.exec(
+            select(DayLabel).where(
+                DayLabel.study_id == study_obj.id,
+                DayLabel.id.in_(all_relevant_ids)
+            )
+        ).all()
+        order_map = {dl.id: int(dl.display_order) for dl in day_labels}
+        copied_day_indices = sorted(order_map[d] for d in days_to_copy if d in order_map)
+        skipped_day_indices = sorted(order_map[d] for d in days_to_skip if d in order_map)
+
+    logger.info(
+        "Copied cross-user template activities: study='%s', source='%s', target='%s', "
+        "copied_days=%d, skipped_days=%d, total_activities=%d",
+        study,
+        source_user,
+        target_user,
+        len(days_to_copy),
+        len(days_to_skip),
+        total_activities_copied,
+    )
+
+    return {
+        "study": study,
+        "source_user": source_user,
+        "target_user": target_user,
+        "copied_days_count": len(days_to_copy),
+        "skipped_days_count": len(days_to_skip),
+        "total_activities_copied": total_activities_copied,
+        "copied_day_indices": copied_day_indices,
+        "skipped_day_indices": skipped_day_indices,
+    }
+
+
 class ActiveOpenStudyResponse(BaseModel):
     name_short: str
     name: Optional[str] = None
