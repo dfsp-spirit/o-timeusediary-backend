@@ -980,6 +980,37 @@ body {
     animation: shake 0.4s linear;
 }
 
+.activity-block.long-press-delete-armed {
+    transform: scale(0.98);
+    box-shadow: 0 0 0 2px var(--danger-color);
+}
+
+.long-press-delete-indicator {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 20;
+    --long-press-progress: 0;
+    background: conic-gradient(
+        var(--danger-color) calc(var(--long-press-progress) * 1turn),
+        var(--border-color) 0
+    );
+}
+
+.long-press-delete-indicator::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    background: var(--background-color);
+}
+
 @keyframes shake {
     0% { transform: translateX(0); }
     25% { transform: translateX(-5px); }
