@@ -2,7 +2,6 @@
 
 const TUD_SETTINGS = {
     API_BASE_URL: 'http://localhost:8000/tud_backend/api',
-    ALLOW_NO_UID: true,
     STUDY_NAME: 'default',
     DEFAULT_STUDIES_FILE: 'settings/studies_config.json'
 };
