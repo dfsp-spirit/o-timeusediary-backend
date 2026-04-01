@@ -1723,6 +1723,17 @@ def get_participant_day_activities(
         .order_by(Activity.start_minutes, Activity.timeline_id)
     ).all()
 
+    day_indices_with_data_rows = session.exec(
+        select(DayLabel.display_order)
+        .join(Activity, Activity.day_label_id == DayLabel.id)
+        .where(
+            Activity.study_id == study.id,
+            Activity.participant_id == participant_id,
+            DayLabel.study_id == study.id,
+        )
+    ).all()
+    day_indices_with_data = sorted({int(day_index) for day_index in day_indices_with_data_rows})
+
     # Structure the response in a frontend-friendly format
     response_activities = []
     for activity, timeline in activities:
@@ -1834,6 +1845,7 @@ def get_participant_day_activities(
     return {
         "study": study_name_short,
         "study_days_count": study_days_count,
+        "day_indices_with_data": day_indices_with_data,
         "participant": participant_id,
         "day_label": day_label.name,
         "day_label_id": day_label.id,

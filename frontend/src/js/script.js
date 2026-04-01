@@ -3697,6 +3697,119 @@ function ensureLanguageSelector(supportedLanguages, selectedLanguage) {
     controlsContainer.appendChild(wrapper);
 }
 
+function getDayButtonDisplayLabel(dayIndex) {
+    const displayLabel = window.studyConfigManager?.getDayDisplayLabel(dayIndex) || `day_${dayIndex + 1}`;
+
+    if (/^day_\d+$/i.test(String(displayLabel))) {
+        const dayWord = window.i18n && window.i18n.isReady()
+            ? i18n.t('common.day')
+            : 'Day';
+        return `${dayWord} ${dayIndex + 1}`;
+    }
+
+    return displayLabel;
+}
+
+async function saveAndSwitchToDay(targetDayIndex) {
+    const currentDayIndex = getCurrentDayIndex();
+    if (targetDayIndex === currentDayIndex) {
+        return;
+    }
+
+    const row = document.getElementById('previousDaysSwitchRow');
+    const rowButtons = row ? row.querySelectorAll('button') : [];
+    rowButtons.forEach((button) => {
+        button.disabled = true;
+    });
+
+    const result = await sendData({
+        mode: 'json',
+        shouldRedirect: false,
+        isLastDay: false,
+        currentDayIndex
+    });
+
+    if (!result?.success) {
+        if (window.showToast) {
+            const submitErrorMessage = window.i18n
+                ? window.i18n.t('messages.submitError')
+                : 'Error submitting diary';
+            const errorDetails = result?.error ? `: ${result.error}` : '';
+            window.showToast(`${submitErrorMessage}${errorDetails}`, 'error', 5000);
+        }
+
+        rowButtons.forEach((button) => {
+            button.disabled = false;
+        });
+        return;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('day_label_index', String(targetDayIndex));
+    window.location.href = url.toString();
+}
+
+function renderPreviousDaysSwitchRow() {
+    const controlsContainer = document.querySelector('.header-section .controls');
+    if (!controlsContainer || !controlsContainer.parentElement) {
+        return;
+    }
+
+    const currentDayIndex = getCurrentDayIndex();
+    const availableDayIndices = Array.isArray(window.timelineManager?.dayIndicesWithData)
+        ? window.timelineManager.dayIndicesWithData
+        : [];
+
+    const switchTargetDayIndices = [...new Set(availableDayIndices)]
+        .map((value) => Number(value))
+        .filter((value) => Number.isInteger(value) && value >= 0 && value !== currentDayIndex)
+        .sort((left, right) => left - right);
+
+    const shouldShow = Boolean(TUD_SETTINGS.SHOW_PREVIOUS_DAYS_BUTTONS) && switchTargetDayIndices.length > 0;
+
+    let existingRow = document.getElementById('previousDaysSwitchRow');
+    if (!shouldShow) {
+        if (existingRow) {
+            existingRow.remove();
+        }
+        return;
+    }
+
+    if (!existingRow) {
+        existingRow = document.createElement('div');
+        existingRow.id = 'previousDaysSwitchRow';
+        existingRow.className = 'previous-days-switch-row';
+        controlsContainer.insertAdjacentElement('afterend', existingRow);
+    }
+
+    existingRow.innerHTML = '';
+
+    const label = document.createElement('span');
+    label.className = 'previous-days-switch-label';
+    label.setAttribute('data-i18n', 'messages.goBackToEditPreviousDays');
+    label.textContent = window.i18n && window.i18n.isReady()
+        ? i18n.t('messages.goBackToEditPreviousDays')
+        : 'Go back to edit previous days';
+    existingRow.appendChild(label);
+
+    for (const dayIndex of switchTargetDayIndices) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn previous-day-btn';
+        button.textContent = getDayButtonDisplayLabel(dayIndex);
+
+        button.addEventListener('click', async () => {
+            await saveAndSwitchToDay(dayIndex);
+        });
+
+        existingRow.appendChild(button);
+    }
+
+    if (window.i18n && window.i18n.isReady()) {
+        i18n.applyTranslations(existingRow);
+    }
+}
+
 
 async function init() {
     console.log('==================== Initializing TUD frontend application... ====================');
@@ -3723,7 +3836,8 @@ async function init() {
             keys: [],
             currentIndex: 0,
             study: {},
-            general: {}
+            general: {},
+            dayIndicesWithData: []
         };
 
         // Store study info in timelineManager for easy access
@@ -3824,6 +3938,7 @@ async function init() {
 
         await i18n.init(language);
         i18n.applyTranslations();
+        renderPreviousDaysSwitchRow();
 
         if (footerStatus) {
             if (configLoadBackendSuccess) {
@@ -3955,6 +4070,11 @@ async function init() {
                 if (response.ok) {
                     const backendData = await response.json();
                     console.log('Successfully loaded existing activities from backend:', backendData);
+
+                    window.timelineManager.dayIndicesWithData = Array.isArray(backendData.day_indices_with_data)
+                        ? backendData.day_indices_with_data
+                        : [];
+                    renderPreviousDaysSwitchRow();
 
                     // Transform the backend response to frontend format
                     const transformedData = transformBackendActivitiesResponse(backendData);

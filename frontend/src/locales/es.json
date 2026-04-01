@@ -103,7 +103,8 @@
     "templateLoadedBanner": "We loaded your activities from <strong>{{day}}</strong> as a starting point. Click <strong>'Empty row'</strong> to start fresh or edit the activities below.",
     "reportingForDay": "Reporting for day:",
     "studyDayOf": "Study Day {{current}} of {{total}}",
-    "currentDayTooltip": "Current: {{dayName}} (Day {{current}} of {{total}})"
+    "currentDayTooltip": "Current: {{dayName}} (Day {{current}} of {{total}})",
+    "goBackToEditPreviousDays": "Volver para editar días anteriores"
   },
   "errors": {
     "loadingActivitiesConfigurationTitle": "Error loading activities configuration:",

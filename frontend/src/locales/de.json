@@ -103,7 +103,8 @@
     "templateLoadedBanner": "Wir haben Ihre Aktivitäten von <strong>{{day}}</strong> als Ausgangspunkt geladen. Klicken Sie auf <strong>'Zeile leeren'</strong>, um neu zu beginnen, oder bearbeiten Sie die untenstehenden Aktivitäten.",
     "reportingForDay": "Bericht für Tag:",
     "studyDayOf": "Studientag {{current}} von {{total}}",
-    "currentDayTooltip": "Aktuell: {{dayName}} (Tag {{current}} von {{total}})"
+    "currentDayTooltip": "Aktuell: {{dayName}} (Tag {{current}} von {{total}})",
+    "goBackToEditPreviousDays": "Zurückgehen, um vorherige Tage zu bearbeiten"
   },
   "errors": {
     "loadingActivitiesConfigurationTitle": "Fehler beim Laden der Aktivitätskonfiguration:",
