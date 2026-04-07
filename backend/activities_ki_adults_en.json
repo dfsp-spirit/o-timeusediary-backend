@@ -12,7 +12,7 @@
   "timeline": {
     "primary": {
         "name": "Main Activity",
-        "description": "",
+        "description": "Please cover the entire timeline.",
         "mode": "single-choice",
         "min_coverage": 10,
         "categories": [
@@ -557,7 +557,7 @@
       },
     "secondary": {
         "name": "Secondary Activity",
-        "description": "",
+        "description": "Things done in parallel.",
         "mode": "single-choice",
         "min_coverage": 0,
         "categories": [
