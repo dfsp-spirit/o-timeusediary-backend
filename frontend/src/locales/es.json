@@ -124,7 +124,7 @@
     "loadingActivitiesShort": "Error loading activities. Please refresh the page to try again. Error:"
   },
   "banner": {
-    "dayOneInstructions": "Instrucciones de uso: primero selecciona una actividad de la lista de abajo. Luego haz clic en la línea de tiempo para colocarla y arrastra sus bordes para ampliar su duración. Para eliminar una actividad en móvil, mantenla pulsada durante 2 segundos. En escritorio, haz clic derecho sobre una actividad y elige 'Eliminar' (o pasa el cursor por encima y pulsa 'd' o DEL). El clic derecho también ofrece 'Mostrar información'."
+    "dayOneInstructions": "Instrucciones de uso: primero selecciona una actividad de la lista de abajo. Luego haz clic en la línea de tiempo para colocarla y arrastra sus bordes para ampliar su duración. Para eliminar una actividad en móvil, mantenla pulsada durante 2 segundos. En escritorio, haz clic derecho sobre una actividad y elige 'Eliminar' (o pasa el cursor por encima y pulsa 'd' o DEL)."
   },
   "activities": {
     "otherNotListed": "Otro no listado (ingresar)"

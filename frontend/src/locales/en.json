@@ -124,7 +124,7 @@
     "loadingActivitiesShort": "Error loading activities. Please refresh the page to try again. Error:"
   },
   "banner": {
-    "dayOneInstructions": "Usage Instructions: First select an activity from the list below. Then click on the timeline to place it, and drag its borders to extend. To delete an activity on mobile, long-press it for 2 seconds. On desktop, right-click an activity and choose 'Delete' (or hover and press the 'd' key or the DEL key). Right-click also provides 'Show info'."
+    "dayOneInstructions": "Usage Instructions: First select an activity from the list below. Then click on the timeline to place it, and drag its borders to extend. To delete an activity on mobile, long-press it for 2 seconds. On desktop, right-click an activity and choose 'Delete' (or hover and press the 'd' key or the DEL key)."
   },
   "activities": {
     "otherNotListed": "Other not listed (enter)"
