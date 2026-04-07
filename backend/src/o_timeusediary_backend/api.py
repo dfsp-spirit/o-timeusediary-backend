@@ -987,21 +987,22 @@ async def admin_overview(
             "created_at": activity.created_at
         })
 
-    # Render the template - pass the actual request object, not the class
-    return templates.TemplateResponse(
-        "admin_overview.html",
-        {
-            "request": request,
-            "current_admin": current_admin,
-            "studies_data": studies_data,
-            "total_studies": total_studies,
-            "active_studies_count": sum(1 for s in studies_data if s["is_actively_collecting"]),
-            "total_participants": total_participants,
-            "total_activities_all": total_activities_all,
-            "recent_activities": enriched_recent_activities,
-            "current_time": utc_now()
-        }
-    )
+    # Render template manually to avoid Starlette TemplateResponse caching issues with wheel-installed packages.
+    # When templates are installed from a wheel, Starlette's TemplateResponse cache fails with "unhashable type: dict".
+    context_dict = {
+        "request": request,
+        "current_admin": current_admin,
+        "studies_data": studies_data,
+        "total_studies": total_studies,
+        "active_studies_count": sum(1 for s in studies_data if s["is_actively_collecting"]),
+        "total_participants": total_participants,
+        "total_activities_all": total_activities_all,
+        "recent_activities": enriched_recent_activities,
+        "current_time": utc_now()
+    }
+    template = templates.get_template("admin_overview.html")
+    html_content = template.render(context_dict)
+    return HTMLResponse(content=html_content)
 
 
 class AssignParticipantsRequest(BaseModel):
@@ -1248,17 +1249,19 @@ async def admin_participant_management(
                 "activity_count": participant_activity_count,
             })
 
-    return templates.TemplateResponse(
-        "admin_participant_management.html",
-        {
-            "request": request,
-            "current_admin": current_admin,
-            "studies": studies_for_dropdown,
-            "selected_study": selected_study,
-            "current_participants": current_participants,
-            "current_time": utc_now(),
-        }
-    )
+    # Render template manually to avoid Starlette TemplateResponse caching issues with wheel-installed packages.
+    # When templates are installed from a wheel, Starlette's TemplateResponse cache fails with "unhashable type: dict".
+    context_dict = {
+        "request": request,
+        "current_admin": current_admin,
+        "studies": studies_for_dropdown,
+        "selected_study": selected_study,
+        "current_participants": current_participants,
+        "current_time": utc_now(),
+    }
+    template = templates.get_template("admin_participant_management.html")
+    html_content = template.render(context_dict)
+    return HTMLResponse(content=html_content)
 
 
 @app.get("/admin/tools", name="Admin Tools Page", response_class=HTMLResponse)
