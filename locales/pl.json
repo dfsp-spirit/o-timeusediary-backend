@@ -100,7 +100,7 @@
     "timelineMissing": "Brakuje informacji na tej osi czasu. Chcesz dodać coś?",
     "invalidPlacement": "Nie można umieścić aktywności w tym miejscu z powodu niewłaściwej pozycji.",
     "timelineValidationError": "Błąd walidacji osi czasu: {{message}}",
-    "templateLoadedBanner": "Załadowaliśmy Twoje aktywności z dnia <strong>{{day}}</strong> jako punkt wyjścia. Kliknij <strong>'Wyczyść rząd'</strong>, aby zacząć od nowa lub edytuj poniższe aktywności.",
+    "templateLoadedBanner": "Załadowaliśmy Twoje aktywności z dnia <strong>{{day}}</strong> jako punkt wyjścia. Kliknij <strong>'Wyczyść rząd'</strong>, aby zacząć od nowa lub edytuj poniższe aktywności. Możesz usunąć pojedynczą aktywność przez długie naciśnięcie lub na komputerze, najeżdżając na nią kursorem myszy i naciskając klawisz DEL lub 'd'.",
     "reportingForDay": "Raportowanie dla dnia:",
     "studyDayOf": "Dzień badania {{current}} z {{total}}",
     "currentDayTooltip": "Aktualny: {{dayName}} (Dzień {{current}} z {{total}})",

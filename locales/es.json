@@ -100,7 +100,7 @@
     "timelineMissing": "Falta información en esta línea de tiempo. ¿Te gustaría añadir algo?",
     "invalidPlacement": "Cannot place activity here due to invalid position.",
     "timelineValidationError": "Timeline validation error: {{message}}",
-    "templateLoadedBanner": "We loaded your activities from <strong>{{day}}</strong> as a starting point. Click <strong>'Empty row'</strong> to start fresh or edit the activities below.",
+    "templateLoadedBanner": "Hemos cargado tus actividades del <strong>{{day}}</strong> como punto de partida. Haz clic en <strong>'Limpiar Fila'</strong> para empezar de cero o edita las actividades a continuación. Puedes eliminar una actividad individual manteniéndola pulsada, o en el escritorio pasando el cursor del ratón por encima y pulsando la tecla DEL o 'd'.",
     "reportingForDay": "Reporting for day:",
     "studyDayOf": "Study Day {{current}} of {{total}}",
     "currentDayTooltip": "Current: {{dayName}} (Day {{current}} of {{total}})",

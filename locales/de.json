@@ -100,7 +100,7 @@
     "timelineMissing": "In dieser Zeitleiste fehlen noch Angaben. Möchten Sie etwas hinzufügen?",
     "invalidPlacement": "Aktivität kann aufgrund einer ungültigen Position hier nicht platziert werden.",
     "timelineValidationError": "Fehler bei der Zeitleistenvalidierung: {{message}}",
-    "templateLoadedBanner": "Wir haben Ihre Aktivitäten von <strong>{{day}}</strong> als Ausgangspunkt geladen. Klicken Sie auf <strong>'Zeile leeren'</strong>, um neu zu beginnen, oder bearbeiten Sie die untenstehenden Aktivitäten.",
+    "templateLoadedBanner": "Wir haben Ihre Aktivitäten von <strong>{{day}}</strong> als Ausgangspunkt geladen. Klicken Sie auf <strong>'Zeile leeren'</strong>, um neu zu beginnen, oder bearbeiten Sie die untenstehenden Aktivitäten. Eine einzelne Aktivität können Sie löschen, indem Sie sie gedrückt halten, oder am Computer, indem Sie den Mauszeiger darüber halten und die DEL- oder 'd'-Taste drücken.",
     "reportingForDay": "Bericht für Tag:",
     "studyDayOf": "Studientag {{current}} von {{total}}",
     "currentDayTooltip": "Aktuell: {{dayName}} (Tag {{current}} von {{total}})",
