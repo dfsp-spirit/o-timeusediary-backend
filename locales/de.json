@@ -124,7 +124,7 @@
     "loadingActivitiesShort": "Fehler beim Laden der Aktivitäten. Bitte laden Sie die Seite neu und versuchen Sie es erneut. Fehler:"
   },
   "banner": {
-    "dayOneInstructions": "Nutzungshinweise: Wählen Sie zuerst eine Aktivität aus der untenstehenden Liste. Klicken Sie dann auf die Zeitleiste, um sie zu platzieren, und ziehen Sie die Ränder, um sie zu verlängern. Um eine Aktivität auf dem Handy zu löschen, halten Sie sie 2 Sekunden lang gedrückt. Auf dem Desktop klicken Sie mit der rechten Maustaste auf eine Aktivität und wählen 'Löschen' (oder fahren mit der Maus darüber und drücken 'd' oder Entf). Per Rechtsklick ist auch 'Info anzeigen' verfügbar."
+    "dayOneInstructions": "Nutzungshinweise: Wählen Sie zuerst eine Aktivität aus der untenstehenden Liste. Klicken Sie dann auf die Zeitleiste, um sie zu platzieren, und ziehen Sie die Ränder, um sie zu verlängern. Um eine Aktivität auf dem Handy zu löschen, halten Sie sie 2 Sekunden lang gedrückt. Auf dem Desktop klicken Sie mit der rechten Maustaste auf eine Aktivität und wählen 'Löschen' (oder fahren mit der Maus darüber und drücken 'd' oder Entf)."
   },
   "activities": {
     "otherNotListed": "Sonstiges (eingeben)"

@@ -124,7 +124,7 @@
     "loadingActivitiesShort": "Błąd ładowania aktywności. Proszę odświeżyć stronę, aby spróbować ponownie. Błąd:"
   },
   "banner": {
-    "dayOneInstructions": "Instrukcje użytkowania: Najpierw wybierz aktywność z poniższej listy. Następnie kliknij na oś czasu, aby ją umieścić, a następnie przeciągnij krawędzie, aby ją rozciągnąć. Aby usunąć aktywność na urządzeniu mobilnym, przytrzymaj ją przez 2 sekundy. Na komputerze kliknij aktywność prawym przyciskiem myszy i wybierz 'Usuń' (lub najedź kursorem i naciśnij 'd' albo DEL). Menu pod prawym przyciskiem zawiera też opcję 'Pokaż informacje'."
+    "dayOneInstructions": "Instrukcje użytkowania: Najpierw wybierz aktywność z poniższej listy. Następnie kliknij na oś czasu, aby ją umieścić, a następnie przeciągnij krawędzie, aby ją rozciągnąć. Aby usunąć aktywność na urządzeniu mobilnym, przytrzymaj ją przez 2 sekundy. Na komputerze kliknij aktywność prawym przyciskiem myszy i wybierz 'Usuń' (lub najedź kursorem i naciśnij 'd' albo DEL)."
   },
   "activities": {
     "otherNotListed": "Inne (wpisz)"

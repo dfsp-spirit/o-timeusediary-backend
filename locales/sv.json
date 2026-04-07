@@ -124,7 +124,7 @@
     "loadingActivitiesShort": "Fel vid laddning av aktiviteter. Uppdatera sidan och försök igen. Fel:"
   },
   "banner": {
-    "dayOneInstructions": "Instruktioner: Välj först en aktivitet från listan nedan. Klicka sedan på tidslinjen för att placera den och dra i kanterna för att justera längden. För att ta bort en aktivitet på mobil, håll ned den i 2 sekunder. På dator högerklickar du på en aktivitet och väljer 'Ta bort' (eller hovrar över den och trycker på 'd' eller DEL). Via högerklick finns också 'Visa info'."
+    "dayOneInstructions": "Instruktioner: Välj först en aktivitet från listan nedan. Klicka sedan på tidslinjen för att placera den och dra i kanterna för att justera längden. För att ta bort en aktivitet på mobil, håll ned den i 2 sekunder. På dator högerklickar du på en aktivitet och väljer 'Ta bort' (eller hovrar över den och trycker på 'd' eller DEL)."
   },
   "activities": {
     "otherNotListed": "Annat som inte finns med (ange)"

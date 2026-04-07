@@ -124,7 +124,7 @@
     "loadingActivitiesShort": "Virhe toimintojen latauksessa. Päivitä sivu ja yritä uudelleen. Virhe:"
   },
   "banner": {
-    "dayOneInstructions": "Käyttöohjeet: Valitse ensin toiminto alla olevasta listasta. Klikkaa sitten aikajanaa sijoittaaksesi sen ja vedä reunoista pidentääksesi sitä. Poistaaksesi toiminnon mobiilissa, pidä sitä painettuna 2 sekuntia. Tietokoneella napsauta toimintoa hiiren oikealla ja valitse 'Poista' (tai vie hiiri sen päälle ja paina 'd'- tai Delete-näppäintä). Hiiren oikea painike tarjoaa myös vaihtoehdon 'Näytä tiedot'."
+    "dayOneInstructions": "Käyttöohjeet: Valitse ensin toiminto alla olevasta listasta. Klikkaa sitten aikajanaa sijoittaaksesi sen ja vedä reunoista pidentääksesi sitä. Poistaaksesi toiminnon mobiilissa, pidä sitä painettuna 2 sekuntia. Tietokoneella napsauta toimintoa hiiren oikealla ja valitse 'Poista' (tai vie hiiri sen päälle ja paina 'd'- tai Delete-näppäintä)."
   },
   "activities": {
     "otherNotListed": "Muu (kirjoita)"

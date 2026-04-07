@@ -124,7 +124,7 @@
     "loadingActivitiesShort": "Error loading activities. Please refresh the page to try again. Error:"
   },
   "banner": {
-    "dayOneInstructions": "Instructions d'utilisation : sélectionnez d'abord une activité dans la liste ci-dessous. Cliquez ensuite sur la chronologie pour la placer, puis faites glisser ses bords pour ajuster la durée. Pour supprimer une activité sur mobile, faites un appui long de 2 secondes. Sur ordinateur, faites un clic droit sur une activité et choisissez 'Supprimer' (ou survolez-la et appuyez sur 'd' ou DEL). Le clic droit propose aussi 'Afficher les infos'."
+    "dayOneInstructions": "Instructions d'utilisation : sélectionnez d'abord une activité dans la liste ci-dessous. Cliquez ensuite sur la chronologie pour la placer, puis faites glisser ses bords pour ajuster la durée. Pour supprimer une activité sur mobile, faites un appui long de 2 secondes. Sur ordinateur, faites un clic droit sur une activité et choisissez 'Supprimer' (ou survolez-la et appuyez sur 'd' ou DEL)."
   },
   "activities": {
     "otherNotListed": "Autre non listé (entrer)"
