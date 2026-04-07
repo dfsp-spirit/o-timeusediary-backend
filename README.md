@@ -10,6 +10,8 @@ TRAC is a web-based research software for time-use research: users can report wh
 
 The frontend is based on [github.com/andreifoldes/o-timeusediary by Andrei Tamas Foldes et al.](https://github.com/andreifoldes/o-timeusediary) but heavily adapted, and the backend was written from scratch.
 
+When using the software in this repo, please also cite [Andrei Tamas' paper](https://doi.org/10.32797/jtur-2020-1) `Time use diary design for our times - an overview, presenting a Click-and-Drag Diary Instrument (CaDDI) for online application`.
+
 
 NOTE: Recently the frontend and backend repos were united into this one repo, so for now, you will have to see the [frontend](./frontend/) and [backend](./backend/) directories, and the README files in there, for more details.
 
