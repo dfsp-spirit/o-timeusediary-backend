@@ -1114,7 +1114,7 @@ async def export_runtime_studies_config(
             )
 
         if cfg_study:
-            activities_json_files = cfg_study.get_activities_json_files()
+            activities_json_files = cfg_study.get_supported_activities_json_files()
             study_text_intro = cfg_study.study_text_intro
             study_text_end_completed = cfg_study.study_text_end_completed
             study_text_end_skipped = cfg_study.study_text_end_skipped

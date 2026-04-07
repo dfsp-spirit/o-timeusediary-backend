@@ -43,6 +43,7 @@ class CfgFileStudy(BaseModel):
     study_participant_ids: List[str] = []
     allow_unlisted_participants: bool = True
     default_language: str = "en" # default to English if not given
+    supported_languages: Optional[List[str]] = None
     activities_json_file: Optional[Union[str, Dict[str, str]]] = None
     activities_json_files: Optional[Dict[str, str]] = None
     study_text_intro: Optional[Dict[str, str]] = None
@@ -65,10 +66,25 @@ class CfgFileStudy(BaseModel):
         return {}
 
     def get_supported_languages(self) -> List[str]:
+        if self.supported_languages:
+            deduplicated_languages: List[str] = []
+            for language in self.supported_languages:
+                if language not in deduplicated_languages:
+                    deduplicated_languages.append(language)
+            return deduplicated_languages
         return sorted(self.get_activities_json_files().keys())
 
-    def get_activities_json_file_for_language(self, language: Optional[str] = None) -> Optional[str]:
+    def get_supported_activities_json_files(self) -> Dict[str, str]:
         files_by_lang = self.get_activities_json_files()
+        supported_languages = self.get_supported_languages()
+        return {
+            language: files_by_lang[language]
+            for language in supported_languages
+            if language in files_by_lang
+        }
+
+    def get_activities_json_file_for_language(self, language: Optional[str] = None) -> Optional[str]:
+        files_by_lang = self.get_supported_activities_json_files()
         if not files_by_lang:
             return None
 
@@ -164,7 +180,34 @@ class CfgFileStudy(BaseModel):
                 f'{sorted(files_by_lang.keys())}'
             )
 
-        required_languages = set(files_by_lang.keys())
+        if self.supported_languages is not None:
+            if not isinstance(self.supported_languages, list) or len(self.supported_languages) == 0:
+                raise ValueError('supported_languages must be a non-empty array of language codes')
+
+            for language in self.supported_languages:
+                if not isinstance(language, str) or not re.match(r'^[a-z]{2}$', language):
+                    raise ValueError(
+                        f'supported_languages entry "{language}" is invalid. '
+                        f'Must be a 2-letter lowercase ASCII string (a-z).'
+                    )
+
+            if len(set(self.supported_languages)) != len(self.supported_languages):
+                raise ValueError('supported_languages must not contain duplicates')
+
+            if self.default_language not in self.supported_languages:
+                raise ValueError(
+                    f'default_language "{self.default_language}" must be included in supported_languages: '
+                    f'{self.supported_languages}'
+                )
+
+            missing_activity_files = sorted(set(self.supported_languages) - set(files_by_lang.keys()))
+            if missing_activity_files:
+                raise ValueError(
+                    f'supported_languages contains languages without activities_json_files entry: '
+                    f'{missing_activity_files}'
+                )
+
+        required_languages = set(self.get_supported_languages())
         for day_label in self.day_labels:
             display_names = day_label.get_display_names(self.default_language)
             missing_languages = sorted(required_languages - set(display_names.keys()))
@@ -202,6 +245,12 @@ class CfgFileStudy(BaseModel):
                 if not isinstance(text_value, str) or text_value.strip() == "":
                     raise ValueError(f'{text_field_name}["{language}"] must be a non-empty string')
 
+            missing_languages = sorted(required_languages - set(text_map.keys()))
+            if missing_languages:
+                raise ValueError(
+                    f'{text_field_name} is missing translations for supported_languages: {missing_languages}'
+                )
+
         return self
 
 
@@ -218,7 +267,7 @@ def _resolve_activities_path(raw_path: str, base_dir: Path) -> Path:
 
 def _validate_multilingual_activity_code_sets(cfg_studies: CfgFileStudies, config_dir: Path) -> None:
     for study in cfg_studies.studies:
-        files_by_lang = study.get_activities_json_files()
+        files_by_lang = study.get_supported_activities_json_files()
         if len(files_by_lang) <= 1:
             continue
 
