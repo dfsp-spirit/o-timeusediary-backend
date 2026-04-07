@@ -100,7 +100,7 @@
     "timelineMissing": "Det saknas information på den här tidslinjen. Vill du lägga till något?",
     "invalidPlacement": "Kan inte placera aktiviteten här på grund av ogiltig position.",
     "timelineValidationError": "Valideringsfel i tidslinje: {{message}}",
-    "templateLoadedBanner": "Vi har laddat dina aktiviteter från <strong>{{day}}</strong> som utgångspunkt. Klicka på <strong>'Rensa rad'</strong> för att börja om eller redigera aktiviteterna nedan.",
+    "templateLoadedBanner": "Vi har laddat dina aktiviteter från <strong>{{day}}</strong> som utgångspunkt. Klicka på <strong>'Rensa rad'</strong> för att börja om eller redigera aktiviteterna nedan. Du kan ta bort en enskild aktivitet genom att hålla länge på den, eller på dator genom att hålla muspekaren över den och trycka på DEL- eller 'd'-tangenten.",
     "reportingForDay": "Rapportering för dag:",
     "studyDayOf": "Studiedag {{current}} av {{total}}",
     "currentDayTooltip": "Nuvarande: {{dayName}} (Dag {{current}} av {{total}})",

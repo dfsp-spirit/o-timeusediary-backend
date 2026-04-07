@@ -100,7 +100,7 @@
     "timelineMissing": "Aikajanalta puuttuu tietoja. Haluatko lisätä jotain?",
     "invalidPlacement": "Toimintoa ei voi sijoittaa tähän virheellisen sijainnin vuoksi.",
     "timelineValidationError": "Aikajanan validointivirhe: {{message}}",
-    "templateLoadedBanner": "Latasimme toimintosi päivästä <strong>{{day}}</strong> lähtökohdaksi. Klikkaa <strong>'Tyhjennä rivi'</strong> aloittaaksesi alusta tai muokkaa alla olevia toimintoja.",
+    "templateLoadedBanner": "Latasimme toimintosi päivästä <strong>{{day}}</strong> lähtökohdaksi. Klikkaa <strong>'Tyhjennä rivi'</strong> aloittaaksesi alusta tai muokkaa alla olevia toimintoja. Voit poistaa yksittäisen toiminnon painamalla sitä pitkään, tai tietokoneella pitämällä hiiren osoitin sen päällä ja painamalla DEL- tai 'd'-näppäintä.",
     "reportingForDay": "Raportointi päivälle:",
     "studyDayOf": "Tutkimuspäivä {{current}} / {{total}}",
     "currentDayTooltip": "Nykyinen: {{dayName}} (päivä {{current}} / {{total}})",
