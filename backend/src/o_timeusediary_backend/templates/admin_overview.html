@@ -353,6 +353,134 @@
                 margin-bottom: 0.5rem;
             }
         }
+
+        :root {
+            --bg: #f7f4ed;
+            --surface: #f7f4ed;
+            --text: #1c1c1c;
+            --muted: #5f5f5d;
+            --border: #eceae4;
+            --border-strong: rgba(28, 28, 28, 0.4);
+            --dark-btn-text: #fcfbf8;
+            --focus-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+            --inset-shadow: rgba(255, 255, 255, 0.2) 0px 0.5px 0px 0px inset,
+                            rgba(0, 0, 0, 0.2) 0px 0px 0px 0.5px inset,
+                            rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+        }
+
+        body {
+            font-family: "Camera Plain Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+            color: var(--text);
+            background: var(--bg);
+        }
+
+        .container { max-width: 1280px; }
+
+        .admin-nav-link {
+            font-weight: 400;
+            color: var(--text);
+            background: transparent;
+            border: 1px solid var(--border-strong);
+        }
+
+        .admin-nav-link.active {
+            color: var(--dark-btn-text);
+            background: var(--text);
+            border-color: var(--text);
+            box-shadow: var(--inset-shadow);
+        }
+
+        .header {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+            box-shadow: none;
+            border-radius: 12px;
+        }
+
+        .header h1 {
+            font-weight: 600;
+            line-height: 1.05;
+            letter-spacing: -1.2px;
+        }
+
+        .header p { color: var(--muted); }
+
+        .header-info { border-top-color: var(--border); }
+
+        .stat-card,
+        .study-section,
+        .study-header,
+        .timeline-card,
+        .participant-card,
+        table {
+            background: var(--surface);
+            border-color: var(--border);
+            box-shadow: none;
+        }
+
+        .tabs,
+        .tab-content,
+        th,
+        tr:hover,
+        .activity-path {
+            background: rgba(28, 28, 28, 0.03);
+        }
+
+        .tab {
+            color: var(--muted);
+            font-weight: 400;
+        }
+
+        .tab.active {
+            color: var(--text);
+            border-bottom-color: var(--border-strong);
+            background: var(--surface);
+        }
+
+        .stat-value { color: var(--text); font-weight: 600; letter-spacing: -0.9px; }
+        .stat-label, .study-meta, .empty-state, .activity-path { color: var(--muted); }
+
+        .badge {
+            border-radius: 9999px;
+            border: 1px solid var(--border-strong);
+            background: transparent;
+            color: var(--text);
+            font-weight: 400;
+        }
+
+        .export-btn {
+            background: transparent !important;
+            color: var(--text) !important;
+            border: 1px solid var(--border-strong) !important;
+            border-radius: 6px !important;
+            font-weight: 400 !important;
+            box-shadow: none !important;
+        }
+
+        .export-btn:hover {
+            box-shadow: var(--focus-shadow) !important;
+            transform: none;
+        }
+
+        .export-btn.disabled {
+            background: rgba(28, 28, 28, 0.03) !important;
+            color: rgba(28, 28, 28, 0.5) !important;
+            border-color: var(--border) !important;
+        }
+
+        .page-btn {
+            background: var(--text);
+            color: var(--dark-btn-text);
+            border: 1px solid var(--text);
+            box-shadow: var(--inset-shadow);
+            border-radius: 6px;
+        }
+
+        .page-btn:disabled {
+            background: rgba(28, 28, 28, 0.2);
+            border-color: rgba(28, 28, 28, 0.2);
+        }
     </style>
 </head>
 <body>

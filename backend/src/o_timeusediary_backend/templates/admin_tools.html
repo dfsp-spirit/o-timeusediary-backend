@@ -96,6 +96,102 @@
             border-radius: 6px;
             border-left: 4px solid #4f46e5;
         }
+
+        :root {
+            --bg: #f7f4ed;
+            --surface: #f7f4ed;
+            --text: #1c1c1c;
+            --muted: #5f5f5d;
+            --border: #eceae4;
+            --border-strong: rgba(28, 28, 28, 0.4);
+            --dark-btn-text: #fcfbf8;
+            --focus-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+            --inset-shadow: rgba(255, 255, 255, 0.2) 0px 0.5px 0px 0px inset,
+                            rgba(0, 0, 0, 0.2) 0px 0px 0px 0.5px inset,
+                            rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+        }
+
+        body {
+            font-family: "Camera Plain Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+            color: var(--text);
+            background: var(--bg);
+        }
+
+        .container { max-width: 1280px; }
+
+        .admin-nav-link {
+            font-weight: 400;
+            color: var(--text);
+            background: transparent;
+            border: 1px solid var(--border-strong);
+        }
+
+        .admin-nav-link.active {
+            color: var(--dark-btn-text);
+            background: var(--text);
+            border-color: var(--text);
+            box-shadow: var(--inset-shadow);
+        }
+
+        .header,
+        .card,
+        .example {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+            box-shadow: none;
+            border-radius: 12px;
+        }
+
+        .header h1 {
+            font-weight: 600;
+            line-height: 1.05;
+            letter-spacing: -1.2px;
+        }
+
+        .header p,
+        .hint,
+        p,
+        li { color: var(--muted) !important; }
+
+        .header-info { border-top-color: var(--border); }
+
+        textarea,
+        input {
+            border-color: var(--border);
+            background: var(--surface);
+            color: var(--text);
+        }
+
+        button {
+            font-weight: 400;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background: var(--text);
+            color: var(--dark-btn-text);
+            border-color: var(--text);
+            box-shadow: var(--inset-shadow);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text);
+            border-color: var(--border-strong);
+        }
+
+        .btn-primary:hover,
+        .btn-secondary:hover,
+        .admin-nav-link:hover {
+            box-shadow: var(--focus-shadow);
+        }
+
+        code {
+            background: rgba(28, 28, 28, 0.03);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
     </style>
 </head>
 <body>
