@@ -555,108 +555,67 @@ export function updateCurrentDayDisplay() {
 
     console.log('############################ Current day index:', dayIndex, " Current Day Name:", dayName, 'Total study days:', studyDaysCount);
 
-    // Create or update the display element
-    let dayDisplay = document.getElementById('currentDayDisplay');
-
-    if (!dayDisplay) {
-        //console.log('Creating current day display element...');
-        // Create the element if it doesn't exist
-        dayDisplay = document.createElement('div');
-        dayDisplay.id = 'currentDayDisplay';
-        dayDisplay.className = 'current-day-display';
-
-        // Add CSS styles
-        const style = document.createElement('style');
-        style.textContent = `
-            .current-day-display {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 8px 16px;
-                border-radius: 5px;
-                font-weight: 600;
-                font-size: 14px;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-                margin: 0 10px;
-                min-width: 120px;
-                text-align: center;
-                border: 2px solid rgba(255,255,255,0.2);
-            }
-
-            .current-day-display .day-name {
-                font-size: 16px;
-                margin-right: 4px;
-                margin-left: 4px;
-            }
-
-            .current-day-display .day-index {
-                font-size: 12px;
-                opacity: 0.9;
-                background: rgba(255,255,255,0.2);
-                padding: 2px 6px;
-                border-radius: 10px;
-                margin-left: 4px;
-            }
-
-            /* For mobile responsiveness */
-            @media (max-width: 768px) {
-                .current-day-display {
-                    padding: 6px 12px;
-                    font-size: 12px;
-                    min-width: 100px;
-                    margin: 5px auto;
-                    order: 2; /* Adjust order if needed */
-                }
-
-                .current-day-display .day-name {
-                    font-size: 14px;
-                }
-
-                .current-day-display .day-index {
-                    font-size: 10px;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Find a good place to insert it - perhaps in the timeline-header
-        const timelineHeader = document.querySelector('.timeline-header');
-        if (timelineHeader) {
-            timelineHeader.appendChild(dayDisplay);
-        } else {
-            // Fallback to header or create a container
-            const header = document.querySelector('header');
-            if (header) {
-                header.appendChild(dayDisplay);
-            } else {
-                // Insert at the beginning of body
-                document.body.insertBefore(dayDisplay, document.body.firstChild);
-            }
-        }
+    const timelineTitle = document.querySelector('.timeline-title');
+    if (!timelineTitle) {
+        return null;
     }
 
-    const reportingForDayText = window.i18n
-        ? window.i18n.t('messages.reportingForDay')
-        : 'Reporting for day:';
+    const currentTimelineKey = getCurrentTimelineKey();
+    const timelineName = window.timelineManager?.metadata?.[currentTimelineKey]?.name
+        || timelineTitle.dataset.timelineName
+        || '';
+
     const studyDayText = window.i18n
         ? window.i18n.t('messages.studyDayOf', { current: dayIndex + 1, total: studyDaysCount })
         : `Study Day ${dayIndex + 1} of ${studyDaysCount}`;
 
-    // Update the content
-    dayDisplay.innerHTML = `
-        <span>${reportingForDayText}</span>${' '}
-        <span class="day-name"> ${dayName} </span>
-        <span class="day-index">${studyDayText}</span>
-    `;
+    const combinedTemplate = window.i18n
+        ? window.i18n.t('messages.timelineHeaderCombined', {
+            timelineName: '__TIMELINE__',
+            dayName: '__DAY__',
+            studyDayText: '__STUDY_DAY__'
+        })
+        : 'Reporting __TIMELINE__ for day __DAY__ (__STUDY_DAY__)';
 
-    // Add title for hover/tap info
-    dayDisplay.title = window.i18n
+    const dayTooltipText = window.i18n
         ? window.i18n.t('messages.currentDayTooltip', { dayName, current: dayIndex + 1, total: studyDaysCount })
         : `Current: ${dayName} (Day ${dayIndex + 1} of ${studyDaysCount})`;
 
-    return dayDisplay;
+    timelineTitle.textContent = '';
+
+    const parts = combinedTemplate.split(/(__TIMELINE__|__DAY__|__STUDY_DAY__)/g).filter(Boolean);
+
+    parts.forEach((part) => {
+        if (part === '__TIMELINE__') {
+            const timelineNameSpan = document.createElement('span');
+            timelineNameSpan.className = 'timeline-header-emphasis';
+            timelineNameSpan.textContent = timelineName;
+            timelineTitle.appendChild(timelineNameSpan);
+            return;
+        }
+
+        if (part === '__DAY__') {
+            const dayNameSpan = document.createElement('span');
+            dayNameSpan.className = 'timeline-header-emphasis';
+            dayNameSpan.textContent = dayName;
+            timelineTitle.appendChild(dayNameSpan);
+            return;
+        }
+
+        if (part === '__STUDY_DAY__') {
+            const dayDisplay = document.createElement('span');
+            dayDisplay.id = 'currentDayDisplay';
+            dayDisplay.className = 'timeline-study-day-meta';
+            dayDisplay.textContent = studyDayText;
+            dayDisplay.title = dayTooltipText;
+            timelineTitle.appendChild(dayDisplay);
+            return;
+        }
+
+        timelineTitle.appendChild(document.createTextNode(part));
+    });
+
+    return document.getElementById('currentDayDisplay');
 }
 
 

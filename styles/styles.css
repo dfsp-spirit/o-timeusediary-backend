@@ -229,8 +229,16 @@ body {
     margin: 4px 0;
     font-size: clamp(18px, 2.5vw, 24px);
     color: var(--text-color);
-    font-weight: 600;
+    font-weight: 400;
     letter-spacing: -0.01em;
+}
+
+.timeline-title .timeline-header-emphasis {
+    font-weight: 700;
+}
+
+.timeline-title .timeline-study-day-meta {
+    font-weight: 400;
 }
 
 .timeline-description {

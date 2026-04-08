@@ -1157,6 +1157,7 @@ function updateTimelineHeader(title, description) {
     const timelineDescription = document.querySelector('.timeline-description');
 
     if (timelineTitle) {
+        timelineTitle.dataset.timelineName = title || '';
         timelineTitle.textContent = title || '';
     }
 
