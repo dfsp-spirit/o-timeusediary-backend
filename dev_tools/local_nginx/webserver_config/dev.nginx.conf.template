@@ -61,7 +61,7 @@ http {
 
         # Optional: Handle requests without the prefix (redirect or 404)
         location / {
-            return 404 "This development server only serves paths under '/report/' (frontend) and '/tud_backend/' (backend, API). \n\n Try adding these to the origin for example: \n\n  * frontend: '/report/index.html' \n  * API: '/tud_backend/api/active_open_study_names' \n  * API docs: 'tud_backend/docs' \n  * admin interface: '/tud_backend/admin'. \n \n";
+            return 404 "This development server only serves paths under '/report/' (frontend) and '/tud_backend/' (backend, API). \n\n Try adding these to the origin for example: \n\n  * frontend: /report/index.html \n  * API: /tud_backend/api/active_open_study_names \n  * API docs: /tud_backend/docs \n  * admin interface: /tud_backend/admin. \n \n";
         }
     }
 }
