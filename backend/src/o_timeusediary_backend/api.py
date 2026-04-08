@@ -1116,11 +1116,13 @@ async def export_runtime_studies_config(
 
         if cfg_study:
             activities_json_files = cfg_study.get_supported_activities_json_files()
+            supported_languages = cfg_study.get_supported_languages()
             study_text_intro = cfg_study.study_text_intro
             study_text_end_completed = cfg_study.study_text_end_completed
             study_text_end_skipped = cfg_study.study_text_end_skipped
         else:
             activities_json_files = {study.default_language: study.activities_json_url}
+            supported_languages = [study.default_language]
             study_text_intro = None
             study_text_end_completed = None
             study_text_end_skipped = None
@@ -1134,6 +1136,7 @@ async def export_runtime_studies_config(
                 "study_participant_ids": participant_ids,
                 "allow_unlisted_participants": study.allow_unlisted_participants,
                 "default_language": study.default_language,
+                "supported_languages": supported_languages,
                 "activities_json_files": activities_json_files,
                 "study_text_intro": study_text_intro,
                 "study_text_end_completed": study_text_end_completed,
