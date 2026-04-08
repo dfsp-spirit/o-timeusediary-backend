@@ -7,6 +7,10 @@ on:
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
 
     services:
       postgres:
@@ -50,7 +54,7 @@ jobs:
         working-directory: frontend
         run: |
           npm install
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps ${{ matrix.browser }}
 
       - name: Configure nginx and frontend settings
         run: |
@@ -84,13 +88,13 @@ jobs:
           timeout 60s bash -c 'until curl -fsS http://127.0.0.1:3000/report/index.html > /dev/null; do sleep 2; done'
 
           cd frontend
-          npx playwright test
+          npx playwright test --project=${{ matrix.browser }}
 
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.browser }}
           path: frontend/playwright-report/
           if-no-files-found: ignore
 

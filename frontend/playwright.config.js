@@ -20,5 +20,14 @@ module.exports = defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      // WebKit is the closest CI-available engine to Safari.
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
   ],
 });
