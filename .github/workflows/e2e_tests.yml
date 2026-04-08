@@ -102,7 +102,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v6
         with:
-          name: backend-log
+          name: backend-log-${{ matrix.browser }}
           path: /tmp/backend.log
           if-no-files-found: ignore
 
@@ -110,6 +110,6 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v6
         with:
-          name: nginx-logs
+          name: nginx-logs-${{ matrix.browser }}
           path: /tmp/*.log
           if-no-files-found: ignore
