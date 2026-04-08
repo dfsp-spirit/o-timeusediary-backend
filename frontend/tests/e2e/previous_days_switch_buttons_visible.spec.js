@@ -98,6 +98,9 @@ test('shows previous-day switch buttons when days with saved data exist', async 
   await expect(switchRow).toBeVisible({ timeout: 30000 });
 
   const dayButtons = switchRow.locator('.previous-day-btn');
-  await expect(dayButtons).toHaveCount(1);
+  await expect(dayButtons).toHaveCount(2);
   await expect(dayButtons.first()).toContainText('Monday');
+
+  const currentDayButton = dayButtons.filter({ hasText: 'Tuesday' });
+  await expect(currentDayButton).toBeDisabled();
 });
