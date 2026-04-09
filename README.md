@@ -184,6 +184,7 @@ This redirects to the automatically generated FastAPI docs for the running backe
 Some endpoints are especially useful for automation, monitoring, backup, and integration with other systems:
 
 - `GET /api/health` checks that the backend is running and can reach the database. This is useful for uptime monitoring and health checks.
+- `POST /api/admin/studies/import-config` creates one or more studies from a study configuration payload (including activities and study texts), which is useful for automated study setup and server-to-server provisioning workflows.
 - `GET /api/admin/export/studies-runtime-config` exports the full runtime study configuration together with participant assignments and logged activities. This is useful for backups and server-to-server synchronization.
 - `GET /api/admin/export/{study_name_short}/activities` exports all recorded activities for one study in CSV or JSON, which is useful for data pipelines and integration with external systems.
 - `POST /api/admin/studies/{study_name_short}/assign-participants` assigns one or more participants to a study and can create participant records when needed, which is useful for automated invitation workflows.
