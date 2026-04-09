@@ -67,7 +67,45 @@ Install the backend into a virtual environment and start it with a WSGI server s
 
 Studies are defined in `backend/studies_config.json`. Each entry specifies the study name, supported languages, the days to cover, participant handling (open or invite-only via `allow_unlisted_participants`), and references to one or more activity list files (`backend/activities_*.json`). When the backend starts it registers any new studies listed in this file; existing studies are left unchanged.
 
+Each study uses `name_short` as its technical identifier. This short name is important because it is used by the frontend configuration and in participant invitation links via the `study_name` URL parameter.
+
+TRAC also supports study-level internationalization. In `studies_config.json`, each study defines a `default_language` and a list of `supported_languages`. Study texts such as introductions, end messages, and day labels can be provided per language. Activity lists can also be language-specific via `activities_json_files`, which maps language codes to separate `activities_*.json` files. On the frontend, the language is chosen in this order: `lang` URL parameter if present, otherwise the browser language if supported, otherwise the study's default language.
+
 Participants access the app via an invitation link containing their unique ID. For open studies any visitor is assigned an ID automatically.
+
+#### Participant Invitation Links
+
+TRAC identifies participants primarily through the `pid` URL parameter together with the target study in `study_name`. A minimal invitation link therefore looks like this:
+
+```text
+https://your.domain.example.com/report/index.html?study_name=default&pid=PARTICIPANT_ID
+```
+
+Supported URL parameters include:
+
+- `study_name`: the study short name (`name_short` in `studies_config.json`)
+- `pid`: the participant identifier
+- `lang`: optional language override, for example `en`, `sv`, or `de`
+- `template_user`: optional participant ID whose data should be used as a template when the link is first used
+- `return_url`: optional encoded URL to which the user can be sent back after completion
+
+Examples:
+
+```text
+# Select study and participant
+https://your.domain.example.com/report/index.html?study_name=default&pid=c303282d
+
+# Also force the language shown in the frontend
+https://your.domain.example.com/report/index.html?study_name=default&pid=c303282d&lang=sv
+
+# Use another participant as a template for first-time initialization
+https://your.domain.example.com/report/index.html?study_name=study1&pid=c303282d&template_user=a5sf35gh
+
+# Return to an external system after completion
+https://your.domain.example.com/report/index.html?study_name=default&pid=c303282d&return_url=https%3A%2F%2Fexample.org%2Ffinish%3Ftoken%3Dabc123
+```
+
+The `template_user` parameter is intended for cases where one participant's entries should be copied as a starting point for another participant, for example when a parent enters similar data for siblings. The `return_url` parameter should be URL-encoded before being placed into the link.
 
 
 ### 4. Frontend Configuration
