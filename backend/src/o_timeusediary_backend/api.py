@@ -22,11 +22,6 @@ from fastapi.templating import Jinja2Templates
 from .parsers.activities_config import (
     ActivitiesConfig,
     get_all_activity_codes,
-    get_activity_codes_set,
-    get_num_categories_in_cfgfile_per_timeline,
-    load_activities_config,
-    get_num_activities_in_cfgfile_per_timeline,
-    get_activities_cfg_text_for_path,
 )
 from .parsers.studies_config import get_cfg_study_by_name_short
 import secrets
@@ -44,6 +39,12 @@ from .api_deps.activities import (
     validate_activity_code_dependency,
     get_activity_info_dependency,
     get_study_activity_codes
+)
+from .api_deps.available_activities import (
+    get_activities_cfg_text_for_config,
+    get_num_activities_in_cfg_per_timeline,
+    get_num_categories_in_cfg_per_timeline,
+    get_study_activities_config_model,
 )
 from fastapi.responses import HTMLResponse
 from sqlalchemy import func
@@ -387,46 +388,17 @@ def get_study_activities_config(
             if not participant:
                 logger.debug(f"Provided participant_id '{participant_id}' doesn't exist for open study '{study_name_short}'")
 
-    normalized_lang = _normalize_language_code(lang)
-
-    blob_rows = session.exec(
-        select(StudyActivityConfigBlob).where(StudyActivityConfigBlob.study_id == study.id)
-    ).all()
-    blob_by_lang = {
-        _normalize_language_code(blob.language): blob
-        for blob in blob_rows
-        if _normalize_language_code(blob.language)
-    }
-
-    lookup_languages: List[str] = []
-    for language_candidate in [normalized_lang, study.default_language, "en"]:
-        normalized_candidate = _normalize_language_code(language_candidate)
-        if normalized_candidate and normalized_candidate not in lookup_languages:
-            lookup_languages.append(normalized_candidate)
-
-    for language_candidate in lookup_languages:
-        blob = blob_by_lang.get(language_candidate)
-        if blob:
-            return blob.activities_json_data
-
-    cfg_study = get_cfg_study_by_name_short(study_name_short, settings.studies_config_path)
-
-    file_path_for_lang = None
-    if cfg_study:
-        file_path_for_lang = cfg_study.get_activities_json_file_for_language(normalized_lang)
-
-    # Fallback to database field (legacy/compatibility)
-    if not file_path_for_lang:
-        file_path_for_lang = study.activities_json_url
-
-    # Try to load the activities config from the file
     try:
-        activities_config = load_activities_config(file_path_for_lang)
+        activities_config, _source, _selected_language = get_study_activities_config_model(
+            session=session,
+            study=study,
+            lang=lang,
+        )
         return activities_config.dict()
     except FileNotFoundError:
         raise HTTPException(
             status_code=500,
-            detail=f"Activities configuration file not found: {file_path_for_lang}"
+            detail=f"Activities configuration not found for study '{study_name_short}'"
         )
     except Exception as e:
         logger.error(f"Error loading activities config for study {study_name_short}: {e}")
@@ -813,22 +785,12 @@ async def admin_overview(
         if selected_cfg_language not in supported_cfg_languages:
             selected_cfg_language = study.default_language
 
-        selected_activities_cfg_path = study.activities_json_url
-        if cfg_study:
-            selected_activities_cfg_file = cfg_study.get_activities_json_file_for_language(selected_cfg_language)
-            if selected_activities_cfg_file:
-                selected_activities_cfg_path = selected_activities_cfg_file
-
-        selected_activities_cfg_path_str = selected_activities_cfg_path
-        selected_activities_cfg_is_db_blob = isinstance(selected_activities_cfg_path_str, str) and selected_activities_cfg_path_str.startswith("db_blob://")
-
-        if not selected_activities_cfg_is_db_blob:
-            selected_activities_cfg_path_obj = Path(selected_activities_cfg_path_str)
-            if not selected_activities_cfg_path_obj.is_absolute():
-                studies_config_parent = Path(settings.studies_config_path).resolve().parent
-                selected_activities_cfg_path_obj = (studies_config_parent / selected_activities_cfg_path_obj).resolve()
-
-            selected_activities_cfg_path_str = str(selected_activities_cfg_path_obj)
+        activities_config, activities_config_source, selected_cfg_language_effective = get_study_activities_config_model(
+            session=session,
+            study=study,
+            lang=selected_cfg_language,
+        )
+        selected_cfg_language = selected_cfg_language_effective
 
         # Get day labels for this study
         day_labels = session.exec(
@@ -931,63 +893,9 @@ async def admin_overview(
             .where(Activity.study_id == study.id)
         ).first() or 0
 
-        num_activities_in_cfgfile_by_timeline: Dict = {}
-        num_categories_in_cfgfile_per_timeline: Dict = {}
-        activities_cfg_text = ""
-
-        if selected_activities_cfg_is_db_blob:
-            blob_rows = session.exec(
-                select(StudyActivityConfigBlob).where(StudyActivityConfigBlob.study_id == study.id)
-            ).all()
-            blob_by_lang = {
-                _normalize_language_code(blob.language): blob
-                for blob in blob_rows
-                if _normalize_language_code(blob.language)
-            }
-
-            lookup_languages: List[str] = []
-            for language_candidate in [selected_cfg_language, study.default_language, "en"]:
-                normalized_candidate = _normalize_language_code(language_candidate)
-                if normalized_candidate and normalized_candidate not in lookup_languages:
-                    lookup_languages.append(normalized_candidate)
-
-            selected_blob = None
-            selected_blob_lang = None
-            for language_candidate in lookup_languages:
-                selected_blob = blob_by_lang.get(language_candidate)
-                if selected_blob:
-                    selected_blob_lang = language_candidate
-                    break
-
-            if selected_blob:
-                parsed_activities_cfg = ActivitiesConfig(**selected_blob.activities_json_data)
-
-                def _count_activity_items(activity_items: List) -> int:
-                    count = 0
-                    for activity_item in activity_items:
-                        count += 1
-                        if activity_item.childItems:
-                            count += _count_activity_items(activity_item.childItems)
-                    return count
-
-                for timeline_name, timeline_cfg in parsed_activities_cfg.timeline.items():
-                    timeline_activity_count = 0
-                    timeline_category_count = len(timeline_cfg.categories)
-                    for category_cfg in timeline_cfg.categories:
-                        timeline_activity_count += _count_activity_items(category_cfg.activities)
-
-                    num_activities_in_cfgfile_by_timeline[timeline_name] = timeline_activity_count
-                    num_categories_in_cfgfile_per_timeline[timeline_name] = timeline_category_count
-
-                activities_cfg_text = (
-                    f"Activities config is stored in DB blob for language '{selected_blob_lang}'."
-                )
-            else:
-                activities_cfg_text = "Activities config blob not found for selected study/language."
-        else:
-            num_activities_in_cfgfile_by_timeline = get_num_activities_in_cfgfile_per_timeline(selected_activities_cfg_path_str)
-            num_categories_in_cfgfile_per_timeline = get_num_categories_in_cfgfile_per_timeline(selected_activities_cfg_path_str)
-            activities_cfg_text = get_activities_cfg_text_for_path(selected_activities_cfg_path_str, short=True, no_duplicate_parts=True)
+        num_activities_in_cfgfile_by_timeline = get_num_activities_in_cfg_per_timeline(activities_config)
+        num_categories_in_cfgfile_per_timeline = get_num_categories_in_cfg_per_timeline(activities_config)
+        activities_cfg_text = get_activities_cfg_text_for_config(activities_config, short=True, no_duplicate_parts=True)
 
         num_activities_in_cfgfile_total = sum(num_activities_in_cfgfile_by_timeline.values())
         num_categories_in_cfgfile_total = sum(num_categories_in_cfgfile_per_timeline.values())
@@ -1029,6 +937,7 @@ async def admin_overview(
             "total_activities_cfg": num_activities_in_cfgfile_total,
             "total_categories_cfg": num_categories_in_cfgfile_total,
             "activities_cfg_text": activities_cfg_text,  # condensed text view of config-file activities
+            "activities_cfg_source": activities_config_source,
             "supported_cfg_languages": supported_cfg_languages,
             "selected_cfg_language": selected_cfg_language,
             "cfg_language_query_param": cfg_language_query_param,
