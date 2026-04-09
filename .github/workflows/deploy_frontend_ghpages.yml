@@ -45,8 +45,11 @@ jobs:
           # Copy frontend app files to root
           cp -r /tmp/app-deploy/frontend/src/* .
 
-          # Restore docs if they existed
-          if [ -d "/tmp/docs-backup" ]; then
+          # Refresh docs from source branch if present, otherwise keep existing docs from gh-pages.
+          if [ -d "/tmp/app-deploy/docs" ]; then
+            rm -rf docs
+            cp -r /tmp/app-deploy/docs docs
+          elif [ -d "/tmp/docs-backup" ]; then
             rm -rf docs
             cp -r /tmp/docs-backup docs
           fi
