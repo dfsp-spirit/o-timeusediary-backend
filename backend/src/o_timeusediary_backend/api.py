@@ -996,6 +996,11 @@ class AssignParticipantsRequest(BaseModel):
     must_be_new: bool = False
 
 
+class UpdateStudyCollectionWindowRequest(BaseModel):
+    data_collection_start: Optional[datetime] = None
+    data_collection_end: Optional[datetime] = None
+
+
 class ImportStudiesConfigStudy(BaseModel):
     name: str
     name_short: str
@@ -1555,6 +1560,71 @@ async def import_studies_config(
         "transaction_mode": payload.transaction_mode,
         "summary": summary,
         "results": results,
+    }
+
+
+@app.patch("/api/admin/studies/{study_name_short}/collection-window")
+async def update_study_collection_window(
+    study_name_short: str,
+    payload: UpdateStudyCollectionWindowRequest,
+    current_admin: str = Depends(verify_admin),
+    session: Session = Depends(get_session),
+):
+    """Update the data-collection time window of an existing study.
+
+    This endpoint enables admins to close a study early or reopen/extend it
+    by changing one or both of `data_collection_start` and `data_collection_end`.
+    """
+    study = session.exec(select(Study).where(Study.name_short == study_name_short)).first()
+    if not study:
+        raise HTTPException(status_code=404, detail=f"Study '{study_name_short}' not found")
+
+    if payload.data_collection_start is None and payload.data_collection_end is None:
+        raise HTTPException(
+            status_code=400,
+            detail="At least one of data_collection_start or data_collection_end must be provided",
+        )
+
+    previous_start = study.data_collection_start
+    previous_end = study.data_collection_end
+
+    new_start = payload.data_collection_start or previous_start
+    new_end = payload.data_collection_end or previous_end
+
+    if new_start >= new_end:
+        raise HTTPException(
+            status_code=400,
+            detail="data_collection_start must be earlier than data_collection_end",
+        )
+
+    study.data_collection_start = new_start
+    study.data_collection_end = new_end
+
+    session.add(study)
+    session.commit()
+    session.refresh(study)
+
+    logger.info(
+        "Admin '%s' updated study collection window for '%s': %s -> %s, %s -> %s",
+        current_admin,
+        study_name_short,
+        previous_start.isoformat(),
+        study.data_collection_start.isoformat(),
+        previous_end.isoformat(),
+        study.data_collection_end.isoformat(),
+    )
+
+    return {
+        "study_name_short": study_name_short,
+        "previous": {
+            "data_collection_start": previous_start,
+            "data_collection_end": previous_end,
+        },
+        "updated": {
+            "data_collection_start": study.data_collection_start,
+            "data_collection_end": study.data_collection_end,
+        },
+        "is_currently_collecting": study.data_collection_start <= utc_now() <= study.data_collection_end,
     }
 
 

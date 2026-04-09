@@ -128,6 +128,63 @@
             font-size: 0.9rem;
         }
 
+        .window-controls {
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+
+        .window-controls h4 {
+            margin-bottom: 0.65rem;
+            color: #495057;
+        }
+
+        .window-controls-row {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .window-control-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .window-control-field input {
+            padding: 0.45rem 0.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            background: #fff;
+            color: #212529;
+        }
+
+        .window-btn {
+            border: none;
+            border-radius: 4px;
+            padding: 0.5rem 0.85rem;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .window-btn-save {
+            background: #0d6efd;
+        }
+
+        .window-btn-pause {
+            background: #dc3545;
+        }
+
+        .window-status-msg {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+
         .tabs {
             display: flex;
             background: #f8f9fa;
@@ -586,6 +643,39 @@
                     <div><strong>Data Collection:</strong> {{ study_data.study.data_collection_start.strftime('%Y-%m-%d') }} to {{ study_data.study.data_collection_end.strftime('%Y-%m-%d') }}</div>
                     <div><strong>Unlisted Participants:</strong> {{ "Allowed" if study_data.study.allow_unlisted_participants else "Restricted" }}</div>
                 </div>
+
+                <div class="window-controls">
+                    <h4>Collection Window Controls</h4>
+                    <div class="window-controls-row">
+                        <div class="window-control-field">
+                            <label for="window-start-{{ study_data.study.id }}"><strong>Start date</strong></label>
+                            <input
+                                id="window-start-{{ study_data.study.id }}"
+                                type="date"
+                                value="{{ study_data.study.data_collection_start.strftime('%Y-%m-%d') }}">
+                        </div>
+                        <div class="window-control-field">
+                            <label for="window-end-{{ study_data.study.id }}"><strong>End date</strong></label>
+                            <input
+                                id="window-end-{{ study_data.study.id }}"
+                                type="date"
+                                value="{{ study_data.study.data_collection_end.strftime('%Y-%m-%d') }}">
+                        </div>
+                        <button
+                            type="button"
+                            class="window-btn window-btn-save"
+                            onclick="saveStudyCollectionWindow('{{ study_data.study.name_short }}', '{{ study_data.study.id }}')">
+                            Save Window
+                        </button>
+                        <button
+                            type="button"
+                            class="window-btn window-btn-pause"
+                            onclick="pauseStudyByDateRange('{{ study_data.study.name_short }}', '{{ study_data.study.id }}')">
+                            Pause (Exclude Today)
+                        </button>
+                    </div>
+                    <div class="window-status-msg" id="window-status-{{ study_data.study.id }}"></div>
+                </div>
             </div>
 
             <div class="tabs">
@@ -797,6 +887,95 @@
     </div>
 
     <script>
+        const ADMIN_ROOT_PATH = "{{ request.scope.root_path }}";
+
+        function formatDateUtc(dateObj) {
+            return dateObj.toISOString().slice(0, 10);
+        }
+
+        function showWindowStatus(studyId, message, isError = false) {
+            const statusEl = document.getElementById(`window-status-${studyId}`);
+            if (!statusEl) {
+                return;
+            }
+            statusEl.textContent = message;
+            statusEl.style.color = isError ? '#b42318' : '#0f5132';
+        }
+
+        async function saveStudyCollectionWindow(studyNameShort, studyId) {
+            const startInput = document.getElementById(`window-start-${studyId}`);
+            const endInput = document.getElementById(`window-end-${studyId}`);
+            if (!startInput || !endInput) {
+                return;
+            }
+
+            const startDate = startInput.value;
+            const endDate = endInput.value;
+
+            if (!startDate || !endDate) {
+                showWindowStatus(studyId, 'Start and end date are required.', true);
+                return;
+            }
+
+            if (startDate >= endDate) {
+                showWindowStatus(studyId, 'Start date must be earlier than end date.', true);
+                return;
+            }
+
+            const payload = {
+                data_collection_start: `${startDate}T00:00:00Z`,
+                data_collection_end: `${endDate}T23:59:59Z`
+            };
+
+            try {
+                const response = await fetch(
+                    `${ADMIN_ROOT_PATH}/api/admin/studies/${encodeURIComponent(studyNameShort)}/collection-window`,
+                    {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    }
+                );
+
+                if (!response.ok) {
+                    const errorPayload = await response.json().catch(() => ({}));
+                    const detail = errorPayload.detail || 'Failed to update collection window.';
+                    showWindowStatus(studyId, detail, true);
+                    return;
+                }
+
+                showWindowStatus(studyId, 'Collection window updated. Reloading…');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 700);
+            } catch (error) {
+                showWindowStatus(studyId, `Request failed: ${error.message}`, true);
+            }
+        }
+
+        function pauseStudyByDateRange(studyNameShort, studyId) {
+            const startInput = document.getElementById(`window-start-${studyId}`);
+            const endInput = document.getElementById(`window-end-${studyId}`);
+            if (!startInput || !endInput) {
+                return;
+            }
+
+            const now = new Date();
+            const yesterday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1));
+            const pauseEndDate = formatDateUtc(yesterday);
+
+            let startDate = startInput.value;
+            if (!startDate || startDate >= pauseEndDate) {
+                const fallbackStart = new Date(Date.UTC(yesterday.getUTCFullYear(), yesterday.getUTCMonth(), yesterday.getUTCDate() - 1));
+                startDate = formatDateUtc(fallbackStart);
+                startInput.value = startDate;
+            }
+
+            endInput.value = pauseEndDate;
+            showWindowStatus(studyId, 'Pause date range prepared. Saving…');
+            saveStudyCollectionWindow(studyNameShort, studyId);
+        }
+
         function updateAdminViewState(studyId, tabId) {
             const url = new URL(window.location.href);
             if (studyId) {
