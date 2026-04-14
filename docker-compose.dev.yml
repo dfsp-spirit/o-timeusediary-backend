@@ -35,7 +35,7 @@ services:
       - ./dev_tools/docker/backend_settings/.env.dev-docker:/workspace/backend/.env:ro
 
   web:
-    image: nginx:1.27-alpine
+    image: nginx:1.29-alpine
     depends_on:
       - backend
     ports:
