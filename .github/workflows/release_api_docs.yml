@@ -34,7 +34,7 @@ jobs:
           tar -czf /tmp/release-api-docs-${{ github.event.release.tag_name }}.tar.gz -C /tmp release-api-docs
 
       - name: Upload docs as release assets
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.release.tag_name }}
           files: |
