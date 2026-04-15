@@ -2,8 +2,13 @@ TRAC MPIAE Changes
 ===================
 
 
-Version 0.13.0
----------------
+Version 0.13.1 -- Fix CITATION.cff file
+------------------------------------------
+* FIX: Fix format of CITATION.cff file
+
+
+Version 0.13.0 -- Dependency updates and small fix
+---------------------------------------------------
 * CHG: Update all dependencies (via renovate)
 * FIX: fix missing i18n of the modal that shows up when clicking the Submit Day button
 
