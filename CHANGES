@@ -2,8 +2,9 @@ TRAC MPIAE Changes
 ===================
 
 
-Current WIP
------------
+Version 0.13.0
+---------------
+* CHG: Update all dependencies (via renovate)
 * FIX: fix missing i18n of the modal that shows up when clicking the Submit Day button
 
 
