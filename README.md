@@ -355,10 +355,10 @@ The E2E test command uses the `e2e` service in `docker-compose.dev.yml`, which i
 
 ### Author, License and Citing
 
-TRAC was written by Tim Schäfer at the Max-Planck Institute for Empirical Aesthetics, Frankfurt am Main, Germany.
+TRAC was written by Tim Schäfer at the Department of Cognitive Neuropsychology, Max-Planck Institute for Empirical Aesthetics, Frankfurt am Main, Germany.
 
 The frontend is based on [github.com/andreifoldes/o-timeusediary by Andrei Tamas Foldes et al.](https://github.com/andreifoldes/o-timeusediary).
 
 Both O-TUD and TRAC are published under the very permissive [MIT License](./LICENSE).
 
-There is no academic paper on TRAC yet, but this software has a [DOI](https://doi.org/10.5281/zenodo.19594929)] and is fully citeable. Please see the [CITATION.cff file](./CITATION.cff) for full information on how to properly cite TRAC in academic work.
+There is no academic paper on TRAC yet, but this software has a [DOI](https://doi.org/10.5281/zenodo.19594929) and is fully citeable. Please see the [CITATION.cff file](./CITATION.cff) for full information on how to properly cite TRAC in academic work.
