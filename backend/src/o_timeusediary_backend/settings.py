@@ -50,19 +50,64 @@ class TUDBackendSettings:
 
     @property
     def admin_username(self):
-        """Get the admin username for the API endpoints requiring admin rights and the admin pages (which use these endpoints)."""
-        username = os.getenv("TUD_API_ADMIN_USERNAME")
-        if not username:
-            raise ValueError("TUD_API_ADMIN_USERNAME environment variable is not set.")
-        return username
+        """Get the first configured admin username (backward-compatible single-admin accessor)."""
+        return self.admin_usernames[0]
 
     @property
     def admin_password(self):
-        """Get the admin password for the API endpoints requiring admin rights and the admin pages (which use these endpoints)."""
-        password = os.getenv("TUD_API_ADMIN_PASSWORD")
-        if not password:
-            raise ValueError("TUD_API_ADMIN_PASSWORD environment variable is not set.")
-        return password
+        """Get the first configured admin password (backward-compatible single-admin accessor)."""
+        return self.admin_passwords[0]
+
+    def _parse_admin_env_var(self, env_name: str) -> list[str]:
+        """Parse an admin credential env var as either a single string or a JSON list of strings."""
+        raw_value = os.getenv(env_name)
+        if not raw_value:
+            raise ValueError(f"{env_name} environment variable is not set.")
+
+        value = raw_value.strip()
+        if not value:
+            raise ValueError(f"{env_name} environment variable is empty.")
+
+        if value.startswith("["):
+            try:
+                parsed_value = json.loads(value)
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"{env_name} must be a valid JSON list of non-empty strings.") from exc
+
+            if not isinstance(parsed_value, list) or not parsed_value:
+                raise ValueError(f"{env_name} must be a non-empty JSON list of strings.")
+
+            if not all(isinstance(item, str) and item.strip() for item in parsed_value):
+                raise ValueError(f"{env_name} JSON list must contain only non-empty strings.")
+
+            return parsed_value
+
+        return [value]
+
+    @property
+    def admin_usernames(self) -> list[str]:
+        """Get admin usernames as a list parsed from `TUD_API_ADMIN_USERNAME`."""
+        return self._parse_admin_env_var("TUD_API_ADMIN_USERNAME")
+
+    @property
+    def admin_passwords(self) -> list[str]:
+        """Get admin passwords as a list parsed from `TUD_API_ADMIN_PASSWORD`."""
+        return self._parse_admin_env_var("TUD_API_ADMIN_PASSWORD")
+
+    @property
+    def admin_credentials(self) -> list[tuple[str, str]]:
+        """Get admin credentials as `(username, password)` pairs.
+
+        Raises:
+            ValueError: If the number of usernames and passwords does not match.
+        """
+        usernames = self.admin_usernames
+        passwords = self.admin_passwords
+        if len(usernames) != len(passwords):
+            raise ValueError(
+                "TUD_API_ADMIN_USERNAME and TUD_API_ADMIN_PASSWORD must contain the same number of entries."
+            )
+        return list(zip(usernames, passwords))
 
 
 settings = TUDBackendSettings()

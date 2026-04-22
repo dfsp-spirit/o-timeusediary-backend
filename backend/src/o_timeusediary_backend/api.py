@@ -123,26 +123,19 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
     @param credentials: HTTPBasicCredentials object containing the username and password provided by the client
     @return: The username of the authenticated admin
     """
-    correct_username = secrets.compare_digest(
-        credentials.username,
-        settings.admin_username
+    for expected_username, expected_password in settings.admin_credentials:
+        correct_username = secrets.compare_digest(credentials.username, expected_username)
+        correct_password = secrets.compare_digest(credentials.password, expected_password)
+        if correct_username and correct_password:
+            logger.info(f"Admin '{credentials.username}' authenticated successfully.")
+            return credentials.username
+
+    logger.info(f"Failed admin authentication attempt for user '{credentials.username}'")
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid admin credentials",
+        headers={"WWW-Authenticate": "Basic"},
     )
-    correct_password = secrets.compare_digest(
-        credentials.password,
-        settings.admin_password
-    )
-
-    if not (correct_username and correct_password):
-        logger.info(f"Failed admin authentication attempt for user '{credentials.username}'")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid admin credentials",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-
-    logger.info(f"Admin '{credentials.username}' authenticated successfully.")
-
-    return credentials.username
 
 
 
