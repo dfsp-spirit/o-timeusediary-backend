@@ -90,18 +90,18 @@
     "loading": {
       "title": "Enviando tu diario...",
       "message": "Por favor espera mientras guardamos tus respuestas."
-      },
-      "activityContext": {
-        "showInfo": "Mostrar información",
-        "delete": "Eliminar",
-        "infoTitle": "Detalles de la actividad",
-        "start": "Inicio",
-        "end": "Fin",
-        "duration": "Duración",
-        "label": "Etiqueta",
-        "category": "Categoría",
-        "name": "Nombre",
-        "code": "Código"
+    },
+    "activityContext": {
+      "showInfo": "Mostrar información",
+      "delete": "Eliminar",
+      "infoTitle": "Detalles de la actividad",
+      "start": "Inicio",
+      "end": "Fin",
+      "duration": "Duración",
+      "label": "Etiqueta",
+      "category": "Categoría",
+      "name": "Nombre",
+      "code": "Código"
     }
   },
   "messages": {
